@@ -24,9 +24,9 @@ const AltisLanding = () => {
         <ul className="hidden gap-10 lg:flex">
           {[
             { label: 'Properties', href: '/properties' },
-            { label: 'Developments', href: '#' },
-            { label: 'Services', href: '#' },
-            { label: 'About', href: '#' },
+            { label: 'Developments', href: '/developments' },
+            { label: 'Services', href: '/services_page' },
+            { label: 'About', href: '/about' },
           ].map(({ label, href }) => (
             <li key={label}>
               <Link href={href} className="text-[11px] font-normal uppercase tracking-[0.15em] text-white/80 transition-colors hover:text-[#d4b87a]">
@@ -36,7 +36,7 @@ const AltisLanding = () => {
           ))}
         </ul>
 
-        <a href="#" className="rounded-sm border border-white/40 px-6 py-2.5 text-[11px] font-medium uppercase tracking-widest text-white transition-all hover:bg-[#b89a5a] hover:border-[#b89a5a]">
+        <a href="/contact" className="rounded-sm border border-white/40 px-6 py-2.5 text-[11px] font-medium uppercase tracking-widest text-white transition-all hover:bg-[#b89a5a] hover:border-[#b89a5a]">
           Contact Us
         </a>
       </nav>
