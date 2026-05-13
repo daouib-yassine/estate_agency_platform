@@ -19,17 +19,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: {
-  children: React.ReactNode;
-}) {
+}: {} & React.PropsWithChildren) {
   return (
     <html lang="en" className="scroll-smooth">
-      {/* 
-        Applying the font variables and Tailwind classes to the body.
-        In v4, font-sans and font-serif will automatically pick up 
-        the variables we define in the CSS below.
-      */}
-      <body className={`${dmSans.variable} ${cormorant.variable} font-sans antialiased`}>
+
+      <body className={`${dmSans.variable} ${cormorant.variable} font-sans antialiased`}
+       suppressHydrationWarning={true}
+       >
         {children}
       </body>
     </html>
