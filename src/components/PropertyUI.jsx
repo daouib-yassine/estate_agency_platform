@@ -1,5 +1,6 @@
 import React from 'react';
 
+// src/components/PropertyUI.jsx
 export const FilterSection = ({ label, children }) => (
   <div className="mb-8 pb-8 border-b border-[#e8e6e2] last:border-0 last:pb-0">
     <label className="block text-[10px] font-bold tracking-widest uppercase text-[#b89a5a] mb-4">

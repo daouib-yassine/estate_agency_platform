@@ -11,9 +11,9 @@ import { SiInstagram, SiX } from '@icons-pack/react-simple-icons';
 /* ─────────────────────────────────────────────
    DATA
 ───────────────────────────────────────────── */
-type Status = 'Upcoming' | 'Under Construction' | 'Ready to Move';
+// type Status = 'Upcoming' | 'Under Construction' | 'Ready to Move';
 
-const statusColor: Record<Status, string> = {
+const statusColor = {
   'Upcoming':           'bg-[#1b3160] text-white',
   'Under Construction': 'bg-[#b89a5a] text-white',
   'Ready to Move':      'bg-emerald-700 text-white',
@@ -24,7 +24,7 @@ const developments = [
     id: 1,
     name: 'The Meridian Residences',
     tagline: 'Elevated living above the city skyline',
-    status: 'Under Construction' as Status,
+    status: 'Under Construction',
     loc: 'Downtown Los Angeles, CA',
     type: 'Luxury Apartments',
     units: 142,
@@ -40,7 +40,7 @@ const developments = [
     id: 2,
     name: 'Solaris Gardens',
     tagline: 'Sustainable community living reimagined',
-    status: 'Upcoming' as Status,
+    status: 'Upcoming',
     loc: 'Pasadena, CA',
     type: 'Townhouses',
     units: 58,
@@ -56,7 +56,7 @@ const developments = [
     id: 3,
     name: 'Pinnacle Tower',
     tagline: 'The new landmark of modern commerce',
-    status: 'Ready to Move' as Status,
+    status: 'Ready to Move',
     loc: 'Beverly Hills, CA',
     type: 'Commercial & Mixed-Use',
     units: 36,
@@ -72,7 +72,7 @@ const developments = [
     id: 4,
     name: 'Azure Shores',
     tagline: 'Beachfront luxury at its purest form',
-    status: 'Upcoming' as Status,
+    status: 'Upcoming',
     loc: 'Malibu, CA',
     type: 'Villas & Penthouses',
     units: 24,
@@ -88,7 +88,7 @@ const developments = [
     id: 5,
     name: 'The Elm Quarter',
     tagline: 'Urban walkability meets family comfort',
-    status: 'Under Construction' as Status,
+    status: 'Under Construction',
     loc: 'Santa Monica, CA',
     type: 'Apartments',
     units: 210,
@@ -104,7 +104,7 @@ const developments = [
     id: 6,
     name: 'Verdant Heights',
     tagline: 'Where nature meets architectural excellence',
-    status: 'Ready to Move' as Status,
+    status: 'Ready to Move',
     loc: 'Bel Air, CA',
     type: 'Luxury Villas',
     units: 12,
@@ -118,7 +118,7 @@ const developments = [
   },
 ];
 
-const allStatuses: Status[] = ['Upcoming', 'Under Construction', 'Ready to Move'];
+const allStatuses = ['Upcoming', 'Under Construction', 'Ready to Move'];
 const allTypes = ['All Types', 'Apartments', 'Villas & Penthouses', 'Townhouses', 'Commercial & Mixed-Use', 'Luxury Villas', 'Luxury Apartments'];
 
 /* ─────────────────────────────────────────────
@@ -126,10 +126,10 @@ const allTypes = ['All Types', 'Apartments', 'Villas & Penthouses', 'Townhouses'
 ───────────────────────────────────────────── */
 const DevelopmentsPage = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [activeStatus, setActiveStatus] = useState<Status | 'All'>('All');
+  const [activeStatus, setActiveStatus] = useState('All');
   const [activeType, setActiveType] = useState('All Types');
-  const [expanded, setExpanded] = useState<number | null>(null);
-  const heroRef = useRef<HTMLDivElement>(null);
+  const [expanded, setExpanded] = useState(null);
+  const heroRef = useRef(null);
 
   useEffect(() => {
     const fn = () => setIsScrolled(window.scrollY > 50);
@@ -137,7 +137,7 @@ const DevelopmentsPage = () => {
     return () => window.removeEventListener('scroll', fn);
   }, []);
 
-  const featured = developments.find(d => d.featured)!;
+  const featured = developments.find(d => d.featured);
   const filtered = developments.filter(d => {
     const matchStatus = activeStatus === 'All' || d.status === activeStatus;
     const matchType = activeType === 'All Types' || d.type === activeType;
@@ -179,7 +179,7 @@ const DevelopmentsPage = () => {
         />
         {/* Diagonal accent */}
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-[#f7f6f3]" style={{ clipPath: 'polygon(0 100%, 100% 0, 100% 100%)' }} />
-
+²²
         <div className="relative z-10 flex h-full flex-col justify-end px-8 pb-20 lg:px-16">
           <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.3em] text-[#d4b87a]">Our Developments</p>
           <h1 className="font-serif text-5xl font-light leading-[1.1] text-white md:text-6xl">
@@ -506,7 +506,7 @@ const RegisterForm = () => {
   const [sent, setSent] = useState(false);
   const [form, setForm] = useState({ name: '', phone: '', email: '', project: '', budget: '' });
 
-  const handle = (e: React.FormEvent) => { e.preventDefault(); setSent(true); };
+  const handle = (e) => { e.preventDefault(); setSent(true); };
 
   if (sent) return (
     <div className="flex flex-col items-center gap-4 py-10">

@@ -43,7 +43,7 @@ export default function ImmoManager() {
     <div className="flex h-screen bg-[#f5f0e8] text-[#0c1a35] font-sans overflow-hidden">
       
       {/* ── SIDEBAR ── */}
-      <aside className={`${sidebarOpen ? 'w-[240px]' : 'w-[70px]'} bg-[#0c1a35] flex flex-col transition-all duration-300 z-30 shrink-0`}>
+      {/* <aside className={`${sidebarOpen ? 'w-[240px]' : 'w-[70px]'} bg-[#0c1a35] flex flex-col transition-all duration-300 z-30 shrink-0`}>
         <div className="h-16 flex items-center px-4 border-b border-white/10 overflow-hidden shrink-0">
           <div className="w-8 h-8 bg-[#b8966a] rounded flex-shrink-0 flex items-center justify-center font-serif font-bold text-[#0c1a35]">I</div>
           {sidebarOpen && <span className="ml-3 text-white font-serif text-lg tracking-tight whitespace-nowrap">ImmoManager</span>}
@@ -61,7 +61,7 @@ export default function ImmoManager() {
                   else if (id === 'properties') setActivePage('buildings'); 
                   else if (id === 'developments') window.location.href = '/admin/development_dashboard';
                   else if (id === 'clients') window.location.href = '/admin/client_dashboard';
-                  else if (id === 'reports') window.location.href = '/admin/reports_dashboard';
+                  // else if (id === 'reports') window.location.href = '/admin/reports_dashboard';
                   else if (id === 'settings') window.location.href = '/admin/settings_dashboard';
                 }}
                 className={`flex w-full items-center gap-3 rounded-sm px-3 py-2.5 text-left transition-all ${isActive ? 'bg-[#b89a5a] text-white' : 'text-white/50 hover:bg-white/5 hover:text-white/80'}`}
@@ -80,7 +80,7 @@ export default function ImmoManager() {
         >
           {sidebarOpen ? <X size={18} /> : <ChevronRight size={18} />}
         </button>
-      </aside>
+      </aside> */}
 
       {/* ── MAIN AREA ── */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -272,38 +272,39 @@ function PropertyForm({ onClose }) {
           </div>
 
           {/* 3. CATEGORY SELECTION */}
-          <div className="space-y-3">
-            <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Type Principal</h3>
-            <div className="flex flex-wrap gap-2">
-              {propertyStructure === 'building-part' ? (
-                <>
-                  <button type="button" onClick={() => setPropertyCategory('apartment')} className={`flex-1 min-w-[100px] p-3 rounded-xl border flex flex-col items-center gap-2 ${propertyCategory === 'apartment' ? 'border-[#b89a5a] bg-[#fdfaf5] text-[#b89a5a]' : 'border-gray-50 text-gray-400'}`}>
-                    <DoorOpen size={18} />
-                    <span className="text-[9px] font-bold uppercase">Appartement</span>
-                  </button>
-                  <button type="button" onClick={() => setPropertyCategory('garage')} className={`flex-1 min-w-[100px] p-3 rounded-xl border flex flex-col items-center gap-2 ${propertyCategory === 'garage' ? 'border-[#b89a5a] bg-[#fdfaf5] text-[#b89a5a]' : 'border-gray-50 text-gray-400'}`}>
-                    <Building2 size={18} />
-                    <span className="text-[9px] font-bold uppercase">Garage</span>
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button type="button" onClick={() => setPropertyCategory('house')} className={`flex-1 min-w-[80px] p-3 rounded-xl border flex flex-col items-center gap-2 ${propertyCategory === 'house' ? 'border-[#b89a5a] bg-[#fdfaf5] text-[#b89a5a]' : 'border-gray-50 text-gray-400'}`}>
-                    <Home size={18} />
-                    <span className="text-[9px] font-bold uppercase">Maison</span>
-                  </button>
-                  <button type="button" onClick={() => setPropertyCategory('land')} className={`flex-1 min-w-[80px] p-3 rounded-xl border flex flex-col items-center gap-2 ${propertyCategory === 'land' ? 'border-[#b89a5a] bg-[#fdfaf5] text-[#b89a5a]' : 'border-gray-50 text-gray-400'}`}>
-                    <Map size={18} />
-                    <span className="text-[9px] font-bold uppercase">Terrain</span>
-                  </button>
-                  <button type="button" onClick={() => setPropertyCategory('garage')} className={`flex-1 min-w-[80px] p-3 rounded-xl border flex flex-col items-center gap-2 ${propertyCategory === 'garage' ? 'border-[#b89a5a] bg-[#fdfaf5] text-[#b89a5a]' : 'border-gray-50 text-gray-400'}`}>
-                    <Building2 size={18} />
-                    <span className="text-[9px] font-bold uppercase">Garage</span>
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
+{/* 3. CATEGORY SELECTION */}
+<div className="space-y-3">
+  <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Type Principal</h3>
+  <div className="flex flex-wrap gap-2">
+    
+    {/* Always show Apartment and Garage for both structures */}
+    <button type="button" onClick={() => setPropertyCategory('apartment')} className={`flex-1 min-w-[80px] p-3 rounded-xl border flex flex-col items-center gap-2 ${propertyCategory === 'apartment' ? 'border-[#b89a5a] bg-[#fdfaf5] text-[#b89a5a]' : 'border-gray-50 text-gray-400'}`}>
+      <DoorOpen size={18} />
+      <span className="text-[9px] font-bold uppercase">Appartement</span>
+    </button>
+
+    {/* Show House and Land ONLY if it's "Propriété Unique" */}
+    {propertyStructure === 'standalone' && (
+      <>
+        <button type="button" onClick={() => setPropertyCategory('house')} className={`flex-1 min-w-[80px] p-3 rounded-xl border flex flex-col items-center gap-2 ${propertyCategory === 'house' ? 'border-[#b89a5a] bg-[#fdfaf5] text-[#b89a5a]' : 'border-gray-50 text-gray-400'}`}>
+          <Home size={18} />
+          <span className="text-[9px] font-bold uppercase">Maison</span>
+        </button>
+        <button type="button" onClick={() => setPropertyCategory('land')} className={`flex-1 min-w-[80px] p-3 rounded-xl border flex flex-col items-center gap-2 ${propertyCategory === 'land' ? 'border-[#b89a5a] bg-[#fdfaf5] text-[#b89a5a]' : 'border-gray-50 text-gray-400'}`}>
+          <Map size={18} />
+          <span className="text-[9px] font-bold uppercase">Terrain</span>
+        </button>
+      </>
+    )}
+
+    {/* Always show Garage */}
+    <button type="button" onClick={() => setPropertyCategory('garage')} className={`flex-1 min-w-[80px] p-3 rounded-xl border flex flex-col items-center gap-2 ${propertyCategory === 'garage' ? 'border-[#b89a5a] bg-[#fdfaf5] text-[#b89a5a]' : 'border-gray-50 text-gray-400'}`}>
+      <Building2 size={18} />
+      <span className="text-[9px] font-bold uppercase">Garage</span>
+    </button>
+    
+  </div>
+</div>
 
           {/* 4. TRANSACTION TYPE */}
           <div className="space-y-3">

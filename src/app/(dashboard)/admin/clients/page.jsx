@@ -45,7 +45,7 @@ const initialClients = [
   {
     id: "C001", name: "James Thornton", email: "james.t@email.com", phone: "+1 310 555-0122",
     location: "Beverly Hills, CA", status: "Paye", interest: "sale", budget: "$2,800,000",
-    assetType: "appartement", buildingName: "chaimae Residence",
+    assetType: "appartement", buildingName: "Chaimae Residence",
     joinedDate: "2025-11-14", lastContact: "2026-05-13", totalVisits: 7,
     notes: "Interested in 5-bed. Pre-approved. Serious buyer.", avatar: "JT",
     tags: ["Pre-approved", "Motivated"], dealValue: "$2,450,000",
@@ -53,7 +53,7 @@ const initialClients = [
   {
     id: "C002", name: "Nadia Bellamy", email: "nadia.b@email.com", phone: "+1 310 555-0198",
     location: "Manhattan, NY", status: "EnAttente", interest: "rent", budget: "$9,000/mo",
-    assetType: "maison",buildingName: "EL Taleb Residence",joinedDate: "2026-01-08", lastContact: "2026-05-12", totalVisits: 3,
+    assetType: "maison",joinedDate: "2026-01-08", lastContact: "2026-05-12", totalVisits: 3,
     notes: "Remote worker, 12-month lease preferred.", avatar: "NB",
     tags: ["Long-term", "Remote"],
   },
@@ -67,7 +67,7 @@ const initialClients = [
   {
     id: "C004", name: "Amara Okafor", email: "amara.o@email.com", phone: "+1 213 555-0144",
     location: "Malibu, CA", status: "Partiel", interest: "sale", budget: "$6,000,000",
-    assetType: "land",buildingName: "Chaimae Residence",
+    assetType: "land",
     joinedDate: "2026-02-01", lastContact: "2026-05-10", totalVisits: 5,
     notes: "High-net-worth. Pre-approved $6M. Very decisive.", avatar: "AO",
     tags: ["HNW", "Pre-approved"],
@@ -75,7 +75,7 @@ const initialClients = [
   {
     id: "C005", name: "Felix Hoffman", email: "felix.h@email.com", phone: "+1 213 555-0163",
     location: "Santa Monica, CA", status: "Paye", interest: "rent", budget: "$3,500/mo",
-    assetType: "appartement",buildingName: "EL Taleb Residence",
+    assetType: "appartement",buildingName: "El Taleb Residence",
     joinedDate: "2026-03-15", lastContact: "2026-05-11", totalVisits: 1,
     notes: "No-show on first visit. Follow-up needed.", avatar: "FH",
     tags: ["Follow-up"],
@@ -83,7 +83,7 @@ const initialClients = [
   {
     id: "C006", name: "Priya Nair", email: "priya.n@email.com", phone: "+1 310 555-0199",
     location: "Bel Air, CA", status: "EnAttente", interest: "sale", budget: "$6,500,000",
-    assetType: "maison",buildingName: "Al Warda Residence",
+    assetType: "maison",
     joinedDate: "2026-04-20", lastContact: "2026-05-09", totalVisits: 2,
     notes: "Referral from existing client. Motivated buyer.", avatar: "PN",
     tags: ["Referral", "Motivated"],
@@ -98,7 +98,7 @@ const initialClients = [
   {
     id: "C008", name: "Hana Yoshida", email: "hana.y@email.com", phone: "+1 310 555-0155",
     location: "Downtown LA, CA", status: "inactive", interest: "sale", budget: "$750,000",
-    assetType: "land",buildingName: "El Taleb Residence",joinedDate: "2026-03-05", lastContact: "2026-05-13", totalVisits: 3,
+    assetType: "land",joinedDate: "2026-03-05", lastContact: "2026-05-13", totalVisits: 3,
     notes: "Off-plan interest. Wants floor 8+.", avatar: "HY",
     tags: ["Off-plan"],
   },
@@ -347,7 +347,7 @@ export default function ClientDashboard() {
     <div className="flex h-screen bg-[#f0ede8] font-sans text-[#0f1f3d] overflow-hidden">
 
       {/* SIDEBAR */}
-      <aside className={`relative flex flex-col bg-[#0f1f3d] transition-all duration-300 ${sidebarOpen ? "w-60" : "w-16"} flex-shrink-0 z-20`}>
+      {/* <aside className={`relative flex flex-col bg-[#0f1f3d] transition-all duration-300 ${sidebarOpen ? "w-60" : "w-16"} flex-shrink-0 z-20`}>
         <div className="flex items-center gap-3 px-4 py-5 border-b border-white/10">
           <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-sm bg-[#b89a5a]">
             <span className="font-serif text-sm font-bold text-white">A</span>
@@ -365,10 +365,10 @@ export default function ClientDashboard() {
                 onClick={() => {
                   if (id === "dashboard") window.location.href = "/admin/dashboard";
                   else if (id === "attendance") window.location.href = "/admin/attendance_dashboard";
-                  else if (id === "properties") window.location.href = "/admin/properties_management";
+                  else if (id === "properties") window.location.href = "/admin/properties_dashboard";
                   else if (id === "developments") window.location.href = "/admin/development_dashboard";
                   else if (id === "clients") window.location.href = "/admin/client_dashboard";
-                  else if (id === "reports") window.location.href = "/admin/reports_dashboard";
+                  // else if (id === "reports") window.location.href = "/admin/reports_dashboard";
                   else if (id === "settings") window.location.href = "/admin/settings_dashboard";
                 }}
                 className={`flex w-full items-center gap-3 rounded-sm px-3 py-2.5 text-left transition-all ${isActive ? "bg-[#b89a5a] text-white" : "text-white/50 hover:bg-white/5 hover:text-white/80"}`}
@@ -401,7 +401,7 @@ export default function ClientDashboard() {
         >
           {sidebarOpen ? <ChevronDown size={10} className="-rotate-90" /> : <ChevronDown size={10} className="rotate-90" />}
         </button>
-      </aside>
+      </aside> */}
 
       {/* MAIN */}
       <div className="flex flex-1 flex-col overflow-hidden">
@@ -526,7 +526,7 @@ export default function ClientDashboard() {
             ))}
             </select>
             {/* Building filter */}
-            {filterAssetType === "appartement" && (
+            {(filterAssetType === "appartement" || filterBuilding !== "TOUS") && (
             <select
                 value={filterBuilding}
                 onChange={e => setFilterBuilding(e.target.value)}
