@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { today } from '@/constants/attendance';
@@ -46,16 +48,19 @@ export function AddAttendanceModal({ onClose, onAdd }) {
   return (
     <>
       {/* Backdrop blur overlay */}
-      <div className="fixed inset-0 bg-black/20 z-30 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/20 z-30 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose} />
       
       {/* Centered Modal Container */}
-      <div className="fixed inset-0 flex items-center justify-center z-40 p-4">
-        <div className="bg-white rounded-sm shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
+      <div className="fixed inset-0 flex items-center justify-center z-40 p-4" onClick={onClose}>
+        <div 
+          onClick={e => e.stopPropagation()} 
+          className="bg-white rounded-sm shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-150 border border-[#e2ddd6]/50"
+        >
           
           {/* Header Panel */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-[#e2ddd6]">
             <h2 className="font-serif text-lg text-[#0f1f3d]">Log Attendance</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+            <button onClick={onClose} className="text-gray-400 hover:text-[#b89a5a] transition-colors">
               <X size={18} />
             </button>
           </div>
@@ -76,7 +81,7 @@ export function AddAttendanceModal({ onClose, onAdd }) {
                 <select 
                   value={formData.department} 
                   onChange={e => setFormData({ ...formData, department: e.target.value })}
-                  className="w-full rounded-sm border border-gray-200 bg-[#f7f6f3] px-3 py-2 text-[12px] text-[#0f1f3d] outline-none focus:border-[#b89a5a] transition-colors"
+                  className="w-full rounded-sm border border-gray-200 bg-[#f7f6f3] px-3 py-2 text-[12px] text-[#0f1f3d] outline-none focus:border-[#b89a5a] transition-colors appearance-none cursor-pointer"
                 >
                   {['Sales', 'Marketing', 'Operations', 'Human Resources', 'Technology', 'Finance'].map(d => (
                     <option key={d} value={d}>{d}</option>
@@ -101,7 +106,7 @@ export function AddAttendanceModal({ onClose, onAdd }) {
                 <select 
                   value={formData.status} 
                   onChange={e => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full rounded-sm border border-gray-200 bg-[#f7f6f3] px-3 py-2 text-[12px] text-[#0f1f3d] outline-none focus:border-[#b89a5a] transition-colors"
+                  className="w-full rounded-sm border border-gray-200 bg-[#f7f6f3] px-3 py-2 text-[12px] text-[#0f1f3d] outline-none focus:border-[#b89a5a] transition-colors appearance-none cursor-pointer"
                 >
                   <option value="present">Present</option>
                   <option value="late">Late</option>
@@ -127,7 +132,7 @@ export function AddAttendanceModal({ onClose, onAdd }) {
               <textarea 
                 value={formData.notes} 
                 onChange={e => setFormData({ ...formData, notes: e.target.value })}
-                className="w-full rounded-sm border border-gray-200 bg-[#f7f6f3] px-3 py-2 text-[12px] text-[#0f1f3d] outline-none focus:border-[#b89a5a] transition-colors resize-none" 
+                className="w-full rounded-sm border border-gray-200 bg-[#f7f6f3] px-3 py-2 text-[12px] text-[#0f1f3d] outline-none focus:border-[#b89a5a] transition-colors resize-none placeholder:text-gray-400" 
                 rows={3} 
                 placeholder="Add special notes or logs regarding adjustments..." 
               />
@@ -138,7 +143,7 @@ export function AddAttendanceModal({ onClose, onAdd }) {
               <button 
                 type="button" 
                 onClick={onClose}
-                className="flex-1 rounded-sm border border-[#e2ddd6] px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-gray-600 hover:border-[#b89a5a] transition-colors"
+                className="flex-1 rounded-sm border border-[#e2ddd6] px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-gray-600 hover:border-[#b89a5a] hover:text-[#b89a5a] transition-colors"
               >
                 Cancel
               </button>

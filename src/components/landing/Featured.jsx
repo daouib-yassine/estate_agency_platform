@@ -1,6 +1,5 @@
-import React from 'react';
 import Link from 'next/link';
-import PropertyCard from '@/components/properties/PropertyCard';
+import PropertyCard from '@/components/properties/property-card-view';
 
 const Featured = () => {
   // In a real application, this data would eventually come from your Node.js/Next.js API
