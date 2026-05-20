@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, 
   Plus, 
@@ -12,7 +12,7 @@ import {
 // ── DATA & HOOK IMPORTS ──
 import { useMonthlyHours } from '@/hooks/use-monthly-hours';
 import { MonthlyHoursPanel } from '@/components/attendance/monthly-hours-panel';
-import { initialAttendances, departments, statusConfig, currentMonth, today } from '@/constants/attendance';
+import { departments, statusConfig, currentMonth, today } from '@/constants/attendance';
 
 // ── MULTI-LINGUAL UI DICTIONARY ──
 const attendanceLocales = {
@@ -29,6 +29,8 @@ const attendanceLocales = {
     checkOut: 'Départ',
     todayLabel: "Aujourd'hui",
     notifUpdated: 'Statut mis à jour à',
+    loadingText: 'Synchronisation du registre de temps...',
+    errorText: 'Échec de chargement des fiches de présence',
     statuses: { present: 'Présent', absent: 'Absent', late: 'En Retard', 'on-leave': 'En Congé' },
     depts: { 'All Departments': 'Tous les départements', 'Sales': 'Ventes', 'Management': 'Direction', 'Marketing': 'Marketing' }
   },
@@ -45,6 +47,8 @@ const attendanceLocales = {
     checkOut: 'Check-out',
     todayLabel: 'Today',
     notifUpdated: 'Status updated to',
+    loadingText: 'Syncing live timecard logs...',
+    errorText: 'Failed to balance attendance ledger',
     statuses: { present: 'Present', absent: 'Absent', late: 'Late', 'on-leave': 'On Leave' },
     depts: { 'All Departments': 'All Departments', 'Sales': 'Sales', 'Management': 'Management', 'Marketing': 'Marketing' }
   },
@@ -61,6 +65,8 @@ const attendanceLocales = {
     checkOut: 'تسجيل الخروج',
     todayLabel: 'اليوم',
     notifUpdated: 'تم تحديث الحالة إلى',
+    loadingText: 'جاري تحميل سجل حضور الموظفين...',
+    errorText: 'فشل في الاتصال بخادم بيانات الحضور',
     statuses: { present: 'حاضر', absent: 'غائب', late: 'متأخر', 'on-leave': 'في إجازة' },
     depts: { 'All Departments': 'جميع الأقسام', 'Sales': 'المبيعات', 'Management': 'الإدارة', 'Marketing': 'التسويق' }
   }
@@ -72,8 +78,11 @@ export default function AttendanceDashboard() {
   const t = attendanceLocales[lang];
   const isRTL = t.dir === 'rtl';
 
-  // ── STATE ──
-  const [attendances, setAttendances]       = useState(initialAttendances);
+  // ── LIVE RUNTIME STATE LOGIC ──
+  const [attendances, setAttendances] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [filterStatus, setFilterStatus]     = useState('all');
   const [filterDept, setFilterDept]         = useState('All Departments');
   const [filterDate, setFilterDate]         = useState('');
@@ -82,18 +91,42 @@ export default function AttendanceDashboard() {
   const [showAddModal, setShowAddModal]     = useState(false);
   const [notification, setNotification]     = useState(null);
 
+  // ── ASYNC API SOURCE HYDRATION ──
+  useEffect(() => {
+    async function loadLiveAttendance() {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/attendance');
+        if (!response.ok) throw new Error('Network connection failed.');
+        
+        const data = await response.json();
+        setAttendances(data);
+      } catch (err) {
+        console.error("Attendance feed update error:", err);
+        setError(t.errorText);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadLiveAttendance();
+  }, [lang]);
+
   // ── HOOK PIPELINE ──
   const monthlySummaries = useMonthlyHours(attendances, currentMonth);
 
   // ── FILTER SYSTEM ──
   const filtered = attendances.filter(a => {
+    const employeeNameStr = a.employeeName || "";
+    const deptStr = a.department || "";
+    const roleStr = a.role || "";
+
     const matchStatus = filterStatus === 'all' || a.status === filterStatus;
-    const matchDept   = filterDept === 'All Departments' || a.department === filterDept;
+    const matchDept   = filterDept === 'All Departments' || deptStr === filterDept;
     const matchDate   = !filterDate || a.date === filterDate;
     const matchSearch = !searchQuery ||
-      a.employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      a.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      a.role.toLowerCase().includes(searchQuery.toLowerCase());
+      employeeNameStr.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      deptStr.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      roleStr.toLowerCase().includes(searchQuery.toLowerCase());
     return matchStatus && matchDept && matchDate && matchSearch;
   });
 
@@ -105,18 +138,53 @@ export default function AttendanceDashboard() {
   }));
 
   // ── ACTION STATE HANDLERS ──
-  const updateStatus = (id, status) => {
+  const updateStatus = async (id, status) => {
+    // Optimistic UI update
     setAttendances(prev => prev.map(a => (a.id === id ? { ...a, status } : a)));
     setSelectedRecord(prev => (prev?.id === id ? { ...prev, status } : prev));
     
     const statusLabel = t.statuses[status] || statusConfig[status]?.label || status;
     showNotif(`${t.notifUpdated} ${statusLabel}`);
+
+    // Persist real-time change downstream inside DB engine via PUT
+    try {
+      await fetch('/api/attendance', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status })
+      });
+    } catch (err) {
+      console.error("Failed saving real-time timecard modification:", err);
+    }
   };
 
   const showNotif = (msg) => {
     setNotification(msg);
     setTimeout(() => setNotification(null), 3000);
   };
+
+  // ── PREMIUM BRANDED LOADING SKELETON ──
+  if (loading) {
+    return (
+      <div dir={t.dir} className="flex h-screen w-full items-center justify-center bg-[#f0ede8] text-[#0f1f3d]">
+        <div className="text-center space-y-4">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#b89a5a]" />
+          <p className="text-xs font-bold tracking-widest uppercase text-gray-500 font-mono">{t.loadingText}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── PREMIUM BRANDED ERROR BOX ──
+  if (error) {
+    return (
+      <div dir={t.dir} className="flex h-screen w-full items-center justify-center bg-[#f0ede8] font-mono text-xs text-rose-600 p-8">
+        <div className="border border-rose-200 bg-rose-50 rounded-sm p-4 text-center max-w-md">
+          ❌ {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div dir={t.dir} className="flex flex-col min-h-screen bg-[#f0ede8] text-[#0f1f3d] transition-all duration-300">

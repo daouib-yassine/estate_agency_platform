@@ -9,7 +9,7 @@ const Navbar = () => (
     <ul className="hidden md:flex gap-8 text-[11px] font-medium tracking-[0.12em] uppercase text-[#4a4845]">
       <li><Link href="/properties" className="hover:text-[#b89a5a] transition-colors">Properties</Link></li>
       <li><Link href="/developments" className="hover:text-[#b89a5a] transition-colors">Developments</Link></li>
-      <li><Link href="/services_page" className="hover:text-[#b89a5a] transition-colors">Services</Link></li>
+      <li><Link href="/our-services" className="hover:text-[#b89a5a] transition-colors">Services</Link></li>
       <li><Link href="/about" className="hover:text-[#b89a5a] transition-colors">About</Link></li>
     </ul>
     <button className="bg-[#0f1f3d] text-white px-5 py-2 rounded text-[11px] font-medium uppercase tracking-wider hover:bg-[#b89a5a] transition-all">

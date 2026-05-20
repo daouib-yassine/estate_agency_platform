@@ -151,13 +151,13 @@ export function AltisGoldKiosk({ currentLang = 'fr', onLangChange }) {
                   onClick={() => setActiveTab('qr')}
                   className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === 'qr' ? 'bg-[#b89a5a] text-white shadow-md' : 'text-gray-400 hover:text-[#b89a5a]'}`}
                 >
-                  <Smartphone size={14} /> {t.tabQr}
+                  <Smartphone size={14} /> <span className={isRTL ? 'font-sans font-bold' : ''}>{t.tabQr}</span>
                 </button>
                 <button 
                   onClick={() => setActiveTab('manual')}
                   className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === 'manual' ? 'bg-[#b89a5a] text-white shadow-md' : 'text-gray-400 hover:text-[#b89a5a]'}`}
                 >
-                  <Fingerprint size={14} /> {t.tabManual}
+                  <Fingerprint size={14} /> <span className={isRTL ? 'font-sans font-bold' : ''}>{t.tabManual}</span>
                 </button>
               </div>
 
@@ -168,7 +168,7 @@ export function AltisGoldKiosk({ currentLang = 'fr', onLangChange }) {
                     <QRCodeSVG value="ALTIS_CHECKIN_TOKEN" size={220} fgColor="#0f1f3d" />
                   </div>
                   <div className="text-center">
-                    <p className="text-[#0f1f3d] font-bold text-[11px] uppercase tracking-widest">{t.scanTitle}</p>
+                    <p className={`text-[#0f1f3d] font-bold text-[11px] uppercase tracking-widest ${isRTL ? 'font-sans' : ''}`}>{t.scanTitle}</p>
                     <p className="text-gray-400 text-xs mt-2 leading-relaxed">{t.scanDesc}</p>
                   </div>
                 </div>
@@ -177,7 +177,7 @@ export function AltisGoldKiosk({ currentLang = 'fr', onLangChange }) {
                 <div className="animate-in fade-in slide-in-from-top-4 duration-500">
                   <div className="flex flex-col items-center">
                     
-                    {/* Secure Digits Feedback Container Matrix */}
+                    /* Secure Digits Feedback Container Matrix */
                     <div className="flex gap-4 mb-12" dir="ltr">
                       {[0, 1, 2, 3].map((i) => (
                         <div key={i} className={`w-12 h-16 rounded-2xl border-2 flex items-center justify-center transition-all duration-300 ${workerNumber[i] ? 'border-[#b89a5a] bg-[#b89a5a]/5' : 'border-gray-100 bg-gray-50'}`}>
@@ -186,7 +186,7 @@ export function AltisGoldKiosk({ currentLang = 'fr', onLangChange }) {
                       ))}
                     </div>
 
-                    {/* Integrated Numeric Entry Grid Platform */}
+                    /* Integrated Numeric Entry Grid Platform */
                     <div className="grid grid-cols-3 gap-3 w-full" dir="ltr">
                       {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                         <button 
@@ -202,7 +202,7 @@ export function AltisGoldKiosk({ currentLang = 'fr', onLangChange }) {
                       <button 
                         type="button" 
                         onClick={() => setWorkerNumber('')} 
-                        className="h-14 rounded-xl text-red-400 font-bold text-[9px] uppercase tracking-widest hover:bg-red-50 transition-all"
+                        className={`h-14 rounded-xl text-red-400 font-bold text-[9px] uppercase tracking-widest hover:bg-red-50 transition-all ${isRTL ? 'font-sans' : ''}`}
                       >
                         {t.clearBtn}
                       </button>

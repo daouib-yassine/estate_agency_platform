@@ -70,7 +70,7 @@ export default function AboutPage() {
                  {[
                    { label: 'Properties', href: '/properties' },
                    { label: 'Developments', href: '/developments' },
-                   { label: 'Services', href: '/services_page' },
+                   { label: 'Services', href: '/our-services' },
                    { label: 'About', href: '/about_page' },
                  ].map(({ label, href }) => (
                    <li key={label}>

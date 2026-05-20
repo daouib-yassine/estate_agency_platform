@@ -1,6 +1,7 @@
 "use client";
 
-import { Plus, Filter, Search, X, Calendar, CalendarCheck, SlidersHorizontal } from 'lucide-react';
+import React from 'react';
+import { Plus, Filter, Search, X, Calendar, CalendarCheck } from 'lucide-react';
 import { MonthlyHoursPanel } from './monthly-hours-panel';
 import { statusConfig, today } from '@/constants/attendance';
 
@@ -22,7 +23,6 @@ const viewLocales = {
     checkOut: 'Départ',
     hoursWorked: 'Heures Travaillées',
     allStatuses: 'Tous les statuts',
-    // Local data tags translation mappings
     statuses: { present: 'Présent', absent: 'Absent', late: 'En Retard', 'on-leave': 'En Congé' },
     depts: { 'All Departments': 'Tous les départements', 'Sales': 'Ventes', 'Management': 'Direction', 'Marketing': 'Marketing' }
   },
@@ -99,33 +99,20 @@ export function AttendanceView({
   updateStatus,
   setShowAddModal,
   departments = [],
-  currentLang = 'fr' // Defaults to French template matrix
+  currentLang = 'fr'
 }) {
   const t = viewLocales[currentLang] || viewLocales.fr;
   const isRTL = t.dir === 'rtl';
 
   return (
     <div dir={t.dir} className="p-6 space-y-5 transition-all duration-300">
-      <div className="relative">
-  {/* Search Icon Container */}
-  <Search 
-    size={15} 
-    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 stroke-[1.5]" 
-  />
-  
-  {/* The Search Input */}
-  <input
-    type="text"
-    value={searchQuery} // Or whatever your search state variable is named
-    onChange={e => setSearchQuery(e.target.value)}
-    placeholder="Search clients, emails, locations..."
-    className="w-72 rounded-sm border border-gray-200/80 bg-[#f8f6f3] pl-9 pr-4 py-2 text-[12px] text-[#0f1f3d] outline-none focus:border-[#b89a5a] transition-all placeholder:text-gray-400 font-sans"
-  />
-</div>
+      
       {/* Header Info Bar */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="font-serif text-2xl font-normal">{t.title}</h1>
+          <h1 className={`text-2xl font-normal text-[#0f1f3d] ${isRTL ? 'font-sans font-bold' : 'font-serif'}`}>
+            {t.title}
+          </h1>
           <p className="mt-0.5 text-[12px] text-gray-500">{t.subtitle}</p>
         </div>
         <button 
@@ -150,7 +137,7 @@ export function AttendanceView({
             <button 
               key={key}
               onClick={() => setFilterStatus(isSelected ? 'all' : key)}
-              className={`rounded-sm border p-4 text-left transition-all ${
+              className={`rounded-sm border p-4 transition-all ${isRTL ? 'text-right' : 'text-left'} ${
                 isSelected 
                   ? `${cfg.bg} ${cfg.color} shadow-md scale-[1.02]` 
                   : 'bg-white border-[#e2ddd6] hover:border-[#b89a5a]/40'
@@ -186,7 +173,7 @@ export function AttendanceView({
         <select 
           value={filterDept} 
           onChange={e => setFilterDept(e.target.value)}
-          className="rounded-sm border border-gray-200 bg-[#f7f6f3] px-3 py-1.5 text-[11px] outline-none focus:border-[#b89a5a] text-gray-600 transition-colors"
+          className="rounded-sm border border-gray-200 bg-[#f7f6f3] px-3 py-1.5 text-[11px] outline-none focus:border-[#b89a5a] text-gray-600 transition-colors cursor-pointer"
         >
           {departments.map(d => (
             <option key={d} value={d}>
@@ -239,9 +226,9 @@ export function AttendanceView({
               >
                 <div className="h-1 w-full rounded-t-sm bg-[#0f1f3d]" />
                 <div className="p-5">
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-start justify-between mb-4 gap-2">
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
                         {isToday && (
                           <span className="rounded-full bg-[#b89a5a]/10 border border-[#b89a5a]/30 px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest text-[#b89a5a]">
                             {t.todayLabel}
@@ -254,8 +241,9 @@ export function AttendanceView({
                       <p className="font-medium text-[13px] text-[#0f1f3d]">{record.employeeName}</p>
                       <p className="text-[11px] text-gray-400 mt-0.5">{record.role}</p>
                     </div>
-                    <div className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest ${cfg.bg} ${cfg.color}`}>
-                      <StatusIcon size={9} />{t.statuses[record.status] || cfg.label}
+                    <div className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest shrink-0 ${cfg.bg} ${cfg.color}`}>
+                      <StatusIcon size={9} />
+                      <span>{t.statuses[record.status] || cfg.label}</span>
                     </div>
                   </div>
 
@@ -266,24 +254,25 @@ export function AttendanceView({
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">{t.checkIn}</span>
-                      <span className="text-[11px] font-medium text-[#0f1f3d]">{record.checkInTime}</span>
+                      <span dir="ltr" className="text-[11px] font-medium text-[#0f1f3d]">{record.checkInTime}</span>
                     </div>
                     {record.checkOutTime && (
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">{t.checkOut}</span>
-                        <span className="text-[11px] font-medium text-[#0f1f3d]">{record.checkOutTime}</span>
+                        <span dir="ltr" className="text-[11px] font-medium text-[#0f1f3d]">{record.checkOutTime}</span>
                       </div>
                     )}
                     {record.workHours && record.workHours !== '–' && (
                       <div className="flex items-center justify-between border-t border-[#e2ddd6] pt-1 mt-1">
                         <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">{t.hoursWorked}</span>
-                        <span className="text-[11px] font-bold text-[#b89a5a]">{record.workHours}</span>
+                        <span dir="ltr" className="text-[11px] font-bold text-[#b89a5a]">{record.workHours}</span>
                       </div>
                     )}
                   </div>
 
                   <div className="flex items-center text-[11px] text-gray-500 gap-1.5">
-                    <Calendar size={11} className="text-[#b89a5a]" />{fmt(record.date, currentLang)}
+                    <Calendar size={11} className="text-[#b89a5a]" />
+                    <span>{fmt(record.date, currentLang)}</span>
                   </div>
                 </div>
               </div>

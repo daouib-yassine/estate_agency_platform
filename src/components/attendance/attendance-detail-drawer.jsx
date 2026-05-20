@@ -126,7 +126,9 @@ export function AttendanceDetailDrawer({ record, onClose, updateStatus, currentL
             <p className="text-[9px] font-bold uppercase tracking-widest text-[#b89a5a]">
               {t.titlePrefix} · {record.id}
             </p>
-            <h2 className="mt-1 font-serif text-xl text-white">{record.employeeName}</h2>
+            <h2 className={`mt-1 text-xl text-white ${isRTL ? 'font-sans font-bold' : 'font-serif'}`}>
+              {record.employeeName}
+            </h2>
             <p className="text-[11px] text-white/50 mt-0.5">
               {record.role} · {t.depts[record.department] || record.department}
             </p>
@@ -146,7 +148,8 @@ export function AttendanceDetailDrawer({ record, onClose, updateStatus, currentL
           <div>
             <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">{t.statusTitle}</h3>
             <div className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest ${cfg.bg} ${cfg.color}`}>
-              <StatusIcon size={10} />{t.statuses[record.status] || cfg.label}
+              <StatusIcon size={10} />
+              <span>{t.statuses[record.status] || cfg.label}</span>
             </div>
           </div>
 
@@ -157,11 +160,13 @@ export function AttendanceDetailDrawer({ record, onClose, updateStatus, currentL
               <p className="font-medium text-[13px] text-[#0f1f3d]">{record.role}</p>
               <p className="text-[11px] text-gray-400 flex items-center gap-1.5">
                 <Building2 size={10} className="text-[#b89a5a]" />
-                {t.depts[record.department] || record.department}
+                <span>{t.depts[record.department] || record.department}</span>
               </p>
               <p className="text-[11px] text-gray-400 flex items-center gap-1.5 mt-1">
                 <Clock size={10} className="text-[#b89a5a]" />
-                {t.shiftLabel}: {record.shift}
+                <span dir="ltr" className={isRTL ? 'w-full text-right' : ''}>
+                  {t.shiftLabel}: {record.shift}
+                </span>
               </p>
               {record.workHours && record.workHours !== '–' && (
                 <p className="text-[12px] font-bold text-[#b89a5a] mt-2 pt-1 border-t border-[#e2ddd6]/60">
@@ -177,16 +182,20 @@ export function AttendanceDetailDrawer({ record, onClose, updateStatus, currentL
             <div className="space-y-2 text-gray-700">
               <div className="flex items-center gap-2 text-[12px]">
                 <Calendar size={12} className="text-[#b89a5a]" />
-                {fmt(record.date, currentLang)}
+                <span>{fmt(record.date, currentLang)}</span>
               </div>
               <div className="flex items-center gap-2 text-[12px]">
                 <Clock size={12} className="text-[#b89a5a]" />
-                {t.checkInLabel}: {record.checkInTime}
+                <span dir="ltr" className={isRTL ? 'w-full text-right' : ''}>
+                  {t.checkInLabel}: {record.checkInTime}
+                </span>
               </div>
               {record.checkOutTime && (
                 <div className="flex items-center gap-2 text-[12px]">
                   <Clock size={12} className="text-[#b89a5a]" />
-                  {t.checkOutLabel}: {record.checkOutTime}
+                  <span dir="ltr" className={isRTL ? 'w-full text-right' : ''}>
+                    {t.checkOutLabel}: {record.checkOutTime}
+                  </span>
                 </div>
               )}
             </div>
@@ -199,13 +208,17 @@ export function AttendanceDetailDrawer({ record, onClose, updateStatus, currentL
               {record.employeePhone && (
                 <div className="flex items-center gap-2 text-[12px]">
                   <Phone size={12} className="text-[#b89a5a]" />
-                  <span className={isRTL ? 'font-mono tracking-normal' : ''}>{record.employeePhone}</span>
+                  <span dir="ltr" className={`font-mono tracking-normal ${isRTL ? 'w-full text-right' : ''}`}>
+                    {record.employeePhone}
+                  </span>
                 </div>
               )}
               {record.employeeEmail && (
                 <div className="flex items-center gap-2 text-[12px]">
                   <Mail size={12} className="text-[#b89a5a]" />
-                  <span>{record.employeeEmail}</span>
+                  <span dir="ltr" className={isRTL ? 'w-full text-right' : ''}>
+                    {record.employeeEmail}
+                  </span>
                 </div>
               )}
             </div>
@@ -267,8 +280,8 @@ export function AttendanceDetailDrawer({ record, onClose, updateStatus, currentL
               onClick={() => updateStatus(record.id, 'present')} 
               className="w-full rounded-sm bg-[#f0ede8] border border-[#e2ddd6] py-2 text-[10px] font-bold uppercase tracking-widest text-gray-600 hover:border-[#b89a5a] transition-all flex items-center justify-center gap-1.5"
             >
-              <RefreshCw size={10} className={isRTL ? 'animate-reverse' : ''} /> 
-              {t.actions.resetPresent}
+              <RefreshCw size={10} className={isRTL ? 'transform rotate-180' : ''} /> 
+              <span>{t.actions.resetPresent}</span>
             </button>
           )}
         </div>

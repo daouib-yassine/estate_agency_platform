@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Search, Bell, Plus, Filter, Users, Star, UserCheck, 
   Eye, CheckCircle2, X, TrendingUp, Globe
@@ -12,7 +12,7 @@ import ClientCardView from "@/components/clients/client-card-view";
 import ClientDetailDrawer from "@/components/clients/client-detail-drawer";
 
 /* ─────────────────────────────────────────────────────────────
-   STATIC APP CONFIGURATIONS & INITIAL MOCK DATA
+    STATIC APP CONFIGURATIONS
 ───────────────────────────────────────────────────────────── */
 const statusConfig = {
   prospect: { label: "Prospect", color: "text-blue-600", bg: "bg-blue-50 border-blue-100", dot: "bg-blue-500" },
@@ -27,13 +27,6 @@ const interestConfig = {
   rent: { label: "Rental", color: "bg-[#b89a5a]/10 text-[#b89a5a]" },
   investment: { label: "Investment", color: "bg-purple-50 text-purple-700" },
 };
-
-const initialClients = [
-  { id: "CLT-001", name: "Yassine Daouib", email: "yassine@example.com", phone: "+212 600-000000", location: "Tangier, Morocco", interest: "sale", assetType: "appartement", buildingName: "Résidence Al Mansour", budget: "2,400,000 DH", dealValue: "2,350,000 DH", totalVisits: 4, lastContact: "2026-05-15", status: "vip", avatar: "YD" },
-  { id: "CLT-002", name: "Amine El Amrani", email: "amine@example.com", phone: "+212 611-111111", location: "Casablanca, Morocco", interest: "rent", assetType: "appartement", buildingName: "Palais Doré", budget: "12,000 DH/mo", dealValue: null, totalVisits: 2, lastContact: "2026-05-17", status: "active", avatar: "AE" },
-  { id: "CLT-003", name: "Sofia Benjelloun", email: "sofia@example.com", phone: "+212 622-222222", location: "Marrakech, Morocco", interest: "investment", assetType: "terrain", buildingName: "TOUS", budget: "5,000,000 DH", dealValue: "4,800,000 DH", totalVisits: 7, lastContact: "2026-05-10", status: "closed", avatar: "SB" },
-  { id: "CLT-004", name: "Karim Tazi", email: "karim@example.com", phone: "+212 633-333333", location: "Rabat, Morocco", interest: "sale", assetType: "villa", buildingName: "TOUS", budget: "8,500,000 DH", dealValue: null, totalVisits: 1, lastContact: "2026-05-18", status: "prospect", avatar: "KT" },
-];
 
 // ── MULTI-LINGUAL UI DICTIONARY ──
 const clientLocales = {
@@ -52,6 +45,8 @@ const clientLocales = {
     allBuildings: 'Tous les immeubles',
     allInterests: 'Tous les intérêts',
     notifUpdated: 'Statut du client mis à jour à',
+    loadingText: 'Chargement des portefeuilles clients...',
+    errorText: 'Échec de la synchronisation de la matrice client',
     kpis: { total: 'Total Clients', vip: 'Clients VIP', active: 'Actifs', prospects: 'Prospects', closed: 'Transactions Closes' },
     interests: { sale: 'À Vendre', rent: 'Location', investment: 'Investissement' },
     statuses: { TOUS: 'TOUS', prospect: 'Prospect', active: 'Actif', vip: 'VIP', closed: 'Clôturé', inactive: 'Inactif' }
@@ -71,6 +66,8 @@ const clientLocales = {
     allBuildings: 'All Buildings',
     allInterests: 'All Interests',
     notifUpdated: 'Client status updated to',
+    loadingText: 'Loading client portfolios...',
+    errorText: 'Failed to sync client matrix matrix',
     kpis: { total: 'Total Clients', vip: 'VIP Clients', active: 'Active', prospects: 'Prospects', closed: 'Closed Deals' },
     interests: { sale: 'For Sale', rent: 'Rental', investment: 'Investment' },
     statuses: { TOUS: 'ALL', prospect: 'Prospect', active: 'Active', vip: 'VIP', closed: 'Closed', inactive: 'Inactive' }
@@ -90,6 +87,8 @@ const clientLocales = {
     allBuildings: 'جميع العقارات/المباني',
     allInterests: 'جميع الاهتمامات',
     notifUpdated: 'تم تحديث حالة العميل إلى',
+    loadingText: 'جاري تحميل محافظ العملاء...',
+    errorText: 'فشل في مزامنة بيانات العملاء المشتركة',
     kpis: { total: 'إجمالي العملاء', vip: 'عملاء VIP', active: 'نشط', prospects: 'محتمل', closed: 'الصفقات المغلقة' },
     interests: { sale: 'للبيع', rent: 'للإيجار', investment: 'استثمار' },
     statuses: { TOUS: 'الكل', prospect: 'محتمل', active: 'نشط', vip: 'VIP', closed: 'مغلق', inactive: 'غير نشط' }
@@ -121,7 +120,7 @@ const buildingNames = ["TOUS", "Résidence Al Mansour", "Palais Doré", "Les Jar
 const statuses = ["TOUS", "prospect", "active", "vip", "closed", "inactive"];
 
 /* ─────────────────────────────────────────────────────────────
-   MAIN COMPONENT CONTEXT ENTRY POINT
+    MAIN COMPONENT CONTEXT ENTRY POINT
 ───────────────────────────────────────────────────────────── */
 export default function ClientDashboard() {
   // --- Internationalization Configuration State ---
@@ -129,8 +128,11 @@ export default function ClientDashboard() {
   const t = clientLocales[lang];
   const isRTL = t.dir === 'rtl';
 
-  // --- Core State Logic ---
-  const [clients, setClients] = useState(initialClients);
+  // --- Core State Logic (Dynamically Powered) ---
+  const [clients, setClients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("TOUS");
   const [filterAssetType, setFilterAssetType] = useState("TOUS");
@@ -140,15 +142,47 @@ export default function ClientDashboard() {
   const [notification, setNotification] = useState(null);
   const [viewMode, setViewMode] = useState("table");
 
+  // --- Runtime Side-Effect Hydration Pipeline ---
+  useEffect(() => {
+    async function loadLiveClients() {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/clients');
+        if (!response.ok) throw new Error('Data collection failed.');
+        
+        const data = await response.json();
+        setClients(data);
+      } catch (err) {
+        console.error("Error updating client states:", err);
+        setError(t.errorText);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadLiveClients();
+  }, [lang]); // Dynamic re-checks ensure seamless UI localization switches
+
   const showNotif = (msg) => {
     setNotification(msg);
     setTimeout(() => setNotification(null), 3000);
   };
 
-  const updateStatus = (id, status) => {
+  const updateStatus = async (id, status) => {
+    // Optimistically patch UI layout state
     setClients(prev => prev.map(c => c.id === id ? { ...c, status } : c));
     setSelectedClient(prev => prev?.id === id ? { ...prev, status } : prev);
     showNotif(`${t.notifUpdated} ${t.statuses[status] || status}`);
+
+    // Persist real-time tracking downstream inside DB engine
+    try {
+      await fetch(`/api/clients`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status })
+      });
+    } catch (err) {
+      console.error("Failed persisting status modification:", err);
+    }
   };
 
   // Humanize Timestamp Format Helper Function
@@ -165,15 +199,22 @@ export default function ClientDashboard() {
   // Core Reactive Filter Engine Matrix
   const filtered = useMemo(() => {
     return clients.filter(c => {
+      // Handle fallback strings gracefully for database values
+      const nameStr = c.name || c.fullName || "";
+      const emailStr = c.email || "";
+      const locationStr = c.location || "";
+      const assetStr = c.assetType || "";
+      const buildingStr = c.buildingName || "";
+
       const matchSearch = search === "" || 
-        c.name.toLowerCase().includes(search.toLowerCase()) ||
-        c.email.toLowerCase().includes(search.toLowerCase()) || 
-        c.location.toLowerCase().includes(search.toLowerCase());
+        nameStr.toLowerCase().includes(search.toLowerCase()) ||
+        emailStr.toLowerCase().includes(search.toLowerCase()) || 
+        locationStr.toLowerCase().includes(search.toLowerCase());
         
       const matchStatus = filterStatus === "TOUS" || c.status === filterStatus;
       const matchInterest = filterInterest === "TOUS" || c.interest === filterInterest;
-      const matchAssetType = filterAssetType === "TOUS" || c.assetType === filterAssetType;
-      const matchBuilding = filterBuilding === "TOUS" || c.buildingName === filterBuilding;
+      const matchAssetType = filterAssetType === "TOUS" || assetStr === filterAssetType;
+      const matchBuilding = filterBuilding === "TOUS" || buildingStr === filterBuilding;
       
       return matchSearch && matchStatus && matchInterest && matchAssetType && matchBuilding;
     });
@@ -187,6 +228,29 @@ export default function ClientDashboard() {
   const prospectCount = clients.filter(c => c.status === "prospect").length;
   const pendingBell = clients.filter(c => c.status === "prospect" || c.status === "inactive").length;
 
+  // --- Elegant Black & Gold Loading State Render ---
+  if (loading) {
+    return (
+      <div dir={t.dir} className="flex h-screen w-full items-center justify-center bg-[#f0ede8] font-sans text-[#0f1f3d]">
+        <div className="text-center space-y-4">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#b89a5a]" />
+          <p className="text-xs font-bold tracking-widest uppercase text-gray-500 font-mono">{t.loadingText}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Error State Render ---
+  if (error) {
+    return (
+      <div dir={t.dir} className="flex h-screen w-full items-center justify-center bg-[#f0ede8] font-mono text-xs text-rose-600 p-8">
+        <div className="border border-rose-200 bg-rose-50 rounded-sm p-4 text-center max-w-md">
+          ❌ {error}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div dir={t.dir} className="flex h-screen w-full bg-[#f0ede8] font-sans text-[#0f1f3d] overflow-hidden transition-all duration-300">
       
@@ -197,7 +261,7 @@ export default function ClientDashboard() {
         <header className="flex items-center justify-between border-b border-[#e2ddd6] bg-white px-6 py-3.5 flex-shrink-0">
           <div className="flex items-center gap-3">
             
-            {/* Highly Polished Premium Input Box (Matches Screenshot Precisely) */}
+            {/* Highly Polished Premium Input Box */}
             <div className="relative">
               <Search size={15} className={`absolute top-1/2 -translate-y-1/2 text-gray-400 stroke-[1.5] ${isRTL ? 'right-3' : 'left-3'}`} />
               <input

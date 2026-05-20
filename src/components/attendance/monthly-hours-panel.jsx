@@ -10,7 +10,7 @@ const panelLocales = {
   fr: {
     dir: 'ltr',
     title: 'Heures Mensuelles',
-    orgTotal: 'Total de l\'agence :',
+    orgTotal: "Total de l'agence :",
     targetLabel: 'objectif 160h / employé',
     noRecords: 'Aucun enregistrement ce mois-ci.',
     ofTarget: 'sur 160h',
@@ -71,17 +71,18 @@ export function MonthlyHoursPanel({ summaries, currentMonth = "2026-05", current
     <div dir={t.dir} className="rounded-sm border border-[#e2ddd6] bg-white shadow-sm overflow-hidden w-full transition-all duration-300">
       
       {/* Panel Header Banner */}
-      <div className="flex flex-wrap items-center justify-between px-5 py-3.5 border-b border-[#f0ede8] gap-2">
+      <div className="flex flex-wrap items-center justify-between px-5 py-3.5 border-b border-[#f0ede8] gap-4">
         <div className="flex items-center gap-2">
           <TrendingUp size={14} className="text-[#b89a5a]" />
-          <h2 className="text-[11px] font-bold uppercase tracking-widest text-[#0f1f3d]">
+          <h2 className={`text-[11px] font-bold uppercase tracking-widest text-[#0f1f3d] ${isRTL ? 'font-sans' : ''}`}>
             {t.title} — {monthLabel}
           </h2>
         </div>
-        <div className="text-[10px] text-gray-400">
-          {t.orgTotal}&nbsp;
-          <span className="font-bold text-[#0f1f3d]">{formatMinutes(totalOrgMinutes)}</span>
-          &nbsp;·&nbsp;{t.targetLabel}
+        <div className="text-[10px] text-gray-400 flex items-center gap-1.5 wrap">
+          <span>{t.orgTotal}</span>
+          <span dir="ltr" className="font-bold text-[#0f1f3d]">{formatMinutes(totalOrgMinutes)}</span>
+          <span className="text-gray-300">·</span>
+          <span>{t.targetLabel}</span>
         </div>
       </div>
 
@@ -99,22 +100,24 @@ export function MonthlyHoursPanel({ summaries, currentMonth = "2026-05", current
                 
                 {/* Profile Identity Block */}
                 <div className="flex items-center gap-3 min-w-[200px]">
-                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#0f1f3d] text-white text-[11px] font-bold">
-                    {emp.employeeName ? emp.employeeName.split(' ').map(n => n[0]).join('').slice(0, 2) : '??'}
+                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#0f1f3d] text-white text-[11px] font-bold font-sans" dir="ltr">
+                    {emp.employeeName ? emp.employeeName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : '??'}
                   </div>
                   <div className="truncate">
                     <p className="text-[12px] font-semibold text-[#0f1f3d] leading-tight">{emp.employeeName}</p>
-                    <p className="text-[10px] text-gray-400 truncate">{emp.role}</p>
+                    <p className="text-[10px] text-gray-400 truncate mt-0.5">{emp.role}</p>
                   </div>
                 </div>
 
                 {/* Progress Tracking Metric Bar */}
                 <div className="flex-1 min-w-[120px] sm:min-w-0">
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center justify-between mb-1" dir="ltr">
                     <span className={`text-[10px] font-bold ${overTarget ? 'text-emerald-600' : 'text-[#b89a5a]'}`}>
                       {formatMinutes(emp.totalMinutes)}
                     </span>
-                    <span className="text-[9px] text-gray-400">{pct}% {t.ofTarget}</span>
+                    <span className="text-[9px] text-gray-400">
+                      {pct}% {t.ofTarget}
+                    </span>
                   </div>
                   <div className="h-1.5 w-full rounded-full bg-[#f0ede8] overflow-hidden">
                     <div
@@ -125,16 +128,19 @@ export function MonthlyHoursPanel({ summaries, currentMonth = "2026-05", current
                 </div>
 
                 {/* Performance Stats Counters & Badges */}
-                <div className={`flex items-center justify-between sm:justify-end gap-4 flex-shrink-0 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                  <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-wider">
+                <div className="flex items-center justify-between sm:justify-end gap-4 flex-shrink-0">
+                  <div className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-wider" dir="ltr">
                     <span className="flex items-center gap-1 text-emerald-600">
-                      <CheckCircle2 size={9} />{emp.daysPresent || 0}{t.daysSuffix}
+                      <CheckCircle2 size={9} />
+                      <span>{emp.daysPresent || 0}{t.daysSuffix}</span>
                     </span>
                     <span className="flex items-center gap-1 text-amber-600">
-                      <UserX size={9} />{emp.daysOnLeave || 0}{t.daysSuffix}
+                      <UserX size={9} />
+                      <span>{emp.daysOnLeave || 0}{t.daysSuffix}</span>
                     </span>
                     <span className="flex items-center gap-1 text-rose-500">
-                      <AlertCircle size={9} />{emp.daysAbsent || 0}{t.daysSuffix}
+                      <AlertCircle size={9} />
+                      <span>{emp.daysAbsent || 0}{t.daysSuffix}</span>
                     </span>
                   </div>
 

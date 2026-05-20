@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Home, Search, Bell, Plus, ChevronDown, Grid3X3, List,
   SlidersHorizontal, Tag, Building2, Award, TrendingUp, CheckCircle2, Globe
 } from 'lucide-react';
 
-import { initialProperties, projects } from "@/constants/properties";
+import { projects } from "@/constants/properties";
 import { locales } from "@/constants/locales";
 import PropertyCardView from "@/components/properties/property-card-view";
 import PropertyTableView from "@/components/properties/property-table-view";
@@ -17,6 +17,11 @@ export default function PropertiesDashboard() {
   const t = locales[lang]; // Shortcut pointer to active translation dictionary
   const isRTL = t.dir === 'rtl';
 
+  // --- Real-time Data Management Infrastructure ---
+  const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   // --- UI Layout and Filter States ---
   const [viewMode, setViewMode] = useState('card');
   const [search, setSearch] = useState('');
@@ -25,6 +30,26 @@ export default function PropertiesDashboard() {
   const [projectFilter, setProjectFilter] = useState('All Projects');
   const [notification, setNotification] = useState(null);
 
+  // --- Live Endpoint Database Synch ---
+  useEffect(() => {
+    async function fetchLivePortfolio() {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/properties');
+        if (!response.ok) throw new Error('Failed to stabilize data stream.');
+        
+        const data = await response.json();
+        setProperties(data);
+      } catch (err) {
+        console.error("Portfolio retrieval exception error:", err);
+        setError(lang === 'ar' ? 'فشل في تحميل محفظة العقارات' : lang === 'en' ? 'Failed to synchronize estate data portfolio' : 'Échec de synchronisation du portefeuille immobilier');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchLivePortfolio();
+  }, [lang]);
+
   const showNotif = (msg) => {
     setNotification(msg);
     setTimeout(() => setNotification(null), 3000);
@@ -32,13 +57,18 @@ export default function PropertiesDashboard() {
 
   // --- Client-side Filter Pipeline ---
   const filtered = useMemo(() => {
-    return initialProperties.filter(p => {
+    return properties.filter(p => {
+      const titleStr = p.title || "";
+      const locStr = p.location || "";
+      const refStr = p.ref || "";
+      const cityStr = p.city || "";
+      
       const q = search.toLowerCase();
       const matchSearch = !q || 
-        p.title.toLowerCase().includes(q) || 
-        p.location.toLowerCase().includes(q) || 
-        p.ref.toLowerCase().includes(q) || 
-        p.city.toLowerCase().includes(q);
+        titleStr.toLowerCase().includes(q) || 
+        locStr.toLowerCase().includes(q) || 
+        refStr.toLowerCase().includes(q) || 
+        cityStr.toLowerCase().includes(q);
       
       const matchType   = typeFilter === 'all' || p.type === typeFilter;
       const matchStatus = statusFilter === 'all' || p.status === statusFilter;
@@ -46,15 +76,40 @@ export default function PropertiesDashboard() {
       
       return matchSearch && matchType && matchStatus && matchProj;
     });
-  }, [search, typeFilter, statusFilter, projectFilter]);
+  }, [properties, search, typeFilter, statusFilter, projectFilter]);
 
-  const totalCount    = initialProperties.length;
-  const forSaleCount  = initialProperties.filter(p => !p.forRent && p.status !== 'sold').length;
-  const rentalCount   = initialProperties.filter(p => p.forRent).length;
-  const vipCount      = initialProperties.filter(p => p.isVIP).length;
+  // --- Real-time Dynamic KPI Counter Streams ---
+  const totalCount    = properties.length;
+  const forSaleCount  = properties.filter(p => !p.forRent && p.status !== 'sold').length;
+  const rentalCount   = properties.filter(p => p.forRent).length;
+  const vipCount      = properties.filter(p => p.isVIP).length;
+
+  // --- Premium Loading State Overlays ---
+  if (loading) {
+    return (
+      <div dir={t.dir} className="flex h-screen w-full items-center justify-center bg-[#f0ede8] text-[#0f1f3d]">
+        <div className="text-center space-y-4">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#b89a5a]" />
+          <p className="text-xs font-bold tracking-widest uppercase text-gray-500 font-mono">
+            {lang === 'ar' ? 'جاري مزامنة المحفظة العقارية...' : lang === 'en' ? 'Syncing dynamic real estate assets...' : 'Synchronisation du portefeuille actif...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Premium Error Boundary Box ---
+  if (error) {
+    return (
+      <div dir={t.dir} className="flex h-screen w-full items-center justify-center bg-[#f0ede8] font-mono text-xs text-rose-600 p-8">
+        <div className="border border-rose-200 bg-rose-50 rounded-sm p-4 text-center max-w-md shadow-sm">
+          ❌ {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    // Dynamic 'dir' injection maps standard CSS rendering blocks for layout reversal
     <div dir={t.dir} className="flex h-screen bg-[#f0ede8] font-sans text-[#0f1f3d] overflow-hidden transition-all duration-200">
       
       <div className="flex flex-1 flex-col overflow-hidden">
@@ -63,10 +118,11 @@ export default function PropertiesDashboard() {
         <header className="flex items-center justify-between border-b border-[#e2ddd6] bg-white px-6 py-3.5 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="relative">
-              {/* Dynamic padding alignment matches right-to-left orientation layout specs */}
               <Search size={14} className={`absolute top-1/2 -translate-y-1/2 text-gray-400 ${isRTL ? 'right-3' : 'left-3'}`} />
               <input
                 type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
                 placeholder={t.searchPlaceholder}
                 className={`rounded-sm border border-gray-200 bg-[#f7f6f3] py-2 text-[12px] outline-none focus:border-[#b89a5a] w-64 transition-colors placeholder:text-gray-400 ${isRTL ? 'pr-9 pl-4' : 'pl-9 pr-4'}`}
               />
@@ -129,13 +185,12 @@ export default function PropertiesDashboard() {
           {/* KPI Dashboard Grid */}
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {[
-              { label: t.totalProperties, val: totalCount,    icon: Home,      trend: 'Active listings', color: 'bg-[#0f1f3d]' },
-              { label: t.forSale,         val: forSaleCount,  icon: Tag,       trend: 'Available now',   color: 'bg-emerald-700' },
+              { label: t.totalProperties, val: totalCount,    icon: Home,       trend: 'Active listings', color: 'bg-[#0f1f3d]' },
+              { label: t.forSale,         val: forSaleCount,  icon: Tag,        trend: 'Available now',   color: 'bg-emerald-700' },
               { label: t.rentalUnits,     val: rentalCount,   icon: Building2, trend: 'Long & short term', color: 'bg-[#b89a5a]' },
-              { label: t.vipPortfolio,    val: vipCount,      icon: Award,     trend: 'Luxury tier',     color: 'bg-amber-600' },
+              { label: t.vipPortfolio,    val: vipCount,      icon: Award,      trend: 'Luxury tier',     color: 'bg-amber-600' },
             ].map(({ label, val, icon: Icon, trend, color }) => (
               <div key={label} className="rounded-sm bg-white border border-[#e2ddd6] p-5 shadow-sm relative overflow-hidden">
-                {/* Border-accent positions mirror contextually on RTL directions */}
                 <div className={`absolute top-0 w-1 h-full ${color} ${isRTL ? 'right-0' : 'left-0'}`} />
                 <div className="flex items-start justify-between mb-3">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{label}</p>

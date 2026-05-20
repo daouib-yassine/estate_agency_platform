@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Bell, Plus, CheckCircle2, Globe } from 'lucide-react';
 import DashboardView from '@/components/admin/DashboardView';
 
@@ -12,6 +12,8 @@ const dashboardLocales = {
     newVisit: 'Nouvelle Visite',
     notifUpdated: 'Statut mis à jour à',
     welcomeBack: 'Tableau de Bord',
+    loadingText: 'Chargement de la console d\'administration...',
+    errorText: 'Impossible de synchroniser les indicateurs clés',
     statusLabels: {
       confirmed: 'Confirmé',
       pending: 'En attente'
@@ -23,6 +25,8 @@ const dashboardLocales = {
     newVisit: 'New Visit',
     notifUpdated: 'Status updated to',
     welcomeBack: 'Admin Dashboard',
+    loadingText: 'Syncing system infrastructure metrics...',
+    errorText: 'Failed to synchronize primary dashboard feed',
     statusLabels: {
       confirmed: 'Confirmed',
       pending: 'Pending'
@@ -34,6 +38,8 @@ const dashboardLocales = {
     newVisit: 'زيارة جديدة',
     notifUpdated: 'تم تحديث الحالة إلى',
     welcomeBack: 'لوحة التحكم الرئيسية',
+    loadingText: 'جاري تحميل لوحة التحكم العامة...',
+    errorText: 'فشل في تحميل المؤشرات والبيانات الحية',
     statusLabels: {
       confirmed: 'مؤكد',
       pending: 'قيد الانتظار'
@@ -41,72 +47,87 @@ const dashboardLocales = {
   }
 };
 
-// --- Multi-lingual Translation Map for Mock Property Data ---
-const PROPERTY_TRANSLATIONS = {
-  '1': {
-    fr: 'Les Résidences Meridian - Unité 4B',
-    en: 'The Meridian Residences - Unit 4B',
-    ar: 'مساكن ميريديان - وحدة 4B'
-  },
-  '2': {
-    fr: 'Tour Pinnacle - Étage 12',
-    en: 'Pinnacle Tower - Floor 12',
-    ar: 'برج بيناكيل - الطابق 12'
-  }
-};
-
-// Seed raw base data using unique system IDs for properties instead of raw English text
-const INITIAL_VISITS = [
-  {
-    id: '1',
-    clientName: 'Sarah Jenkins',
-    propertyId: '1', 
-    agent: 'Sophia Laurent',
-    date: new Date().toISOString().split('T')[0],
-    status: 'confirmed',
-  },
-  {
-    id: '2',
-    clientName: 'Michael Chen',
-    propertyId: '2', 
-    agent: 'Marcus Webb',
-    date: new Date().toISOString().split('T')[0],
-    status: 'pending',
-  }
-];
-
 export default function AdminDashboard() {
   // --- Internationalization Configuration State ---
   const [lang, setLang] = useState('fr'); 
   const t = dashboardLocales[lang];
   const isRTL = t.dir === 'rtl';
 
-  // --- Core Workspace States ---
-  const [visits, setVisVisits] = useState(INITIAL_VISITS);
+  // --- Dynamic DB Pipeline States ---
+  const [visits, setVisits] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [notification, setNotification] = useState(null);
+
+  // --- Live Endpoint API Data Hydration ---
+  useEffect(() => {
+    async function loadLiveMetrics() {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/dashboard');
+        if (!response.ok) throw new Error('Failed to reach server architecture.');
+        
+        const data = await response.json();
+        // Backend handles structural multilingual mapping or returns normalized fields
+        setVisits(data.visits || data); 
+      } catch (err) {
+        console.error("Dashboard engine sync failure:", err);
+        setError(t.errorText);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadLiveMetrics();
+  }, [lang]);
 
   // Derive status counters for dynamic header badges
   const pendingCount = visits.filter(v => v.status === 'pending').length;
 
   /**
-   * Dispatches updates across viewing slots and reads localized label schemas
+   * Dispatches real-time updates through active fetch pipeline and shifts client view optimistically
    */
-  const updateStatus = (id, status) => {
-    setVisVisits(prev => prev.map(v => v.id === id ? { ...v, status } : v));
+  const updateStatus = async (id, status) => {
+    // Optimistic state change
+    setVisits(prev => prev.map(v => v.id === id ? { ...v, status } : v));
     
-    // Fallback path checks localized context strings first
     const label = t.statusLabels[status] || status;
     setNotification(`${t.notifUpdated} ${label}`);
-    
     setTimeout(() => setNotification(null), 3000);
+
+    // Save modifications back to target API database via PUT stream
+    try {
+      await fetch('/api/dashboard', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status })
+      });
+    } catch (err) {
+      console.error("Database sync delay warning for item state alteration:", err);
+    }
   };
 
-  // --- INTERCEPT AND MAP LOCALIZED STRINGS ---
-  // Transforms propertyId into the localized language target before passing it down
-  const translatedVisits = visits.map(visit => ({
-    ...visit,
-    property: PROPERTY_TRANSLATIONS[visit.propertyId]?.[lang] || visit.propertyId
-  }));
+  // --- Premium Minimalist Branded Loading Skeleton ---
+  if (loading) {
+    return (
+      <div dir={t.dir} className="flex h-screen w-full items-center justify-center bg-[#f0ede8] text-[#0f1f3d]">
+        <div className="text-center space-y-4">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#b89a5a]" />
+          <p className="text-xs font-bold tracking-widest uppercase text-gray-500 font-mono">{t.loadingText}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Premium Minimalist Branded Error Box ---
+  if (error) {
+    return (
+      <div dir={t.dir} className="flex h-screen w-full items-center justify-center bg-[#f0ede8] font-mono text-xs text-rose-600 p-8">
+        <div className="border border-rose-200 bg-rose-50 rounded-sm p-4 text-center max-w-md shadow-sm">
+          ❌ {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div dir={t.dir} className="flex h-full w-full bg-[#f0ede8] font-sans text-[#0f1f3d] overflow-hidden transition-all duration-300">
@@ -114,7 +135,7 @@ export default function AdminDashboard() {
       {/* Primary Workspace View Structure */}
       <div className="flex flex-1 flex-col overflow-hidden">
         
-        {/* Workspace Operations Action Header */}
+        /* Workspace Operations Action Header */
         <header className="flex items-center justify-between border-b border-[#e2ddd6] bg-white px-6 py-3.5 flex-shrink-0">
           
           {/* Search Box Input Wrapper */}
@@ -166,8 +187,7 @@ export default function AdminDashboard() {
 
         {/* Scrollable Agency Metrics Dashboard Panel */}
         <main className="flex-1 overflow-y-auto">
-          {/* Passing translatedVisits dynamic content downward instead of INITIAL_VISITS */}
-          <DashboardView visits={translatedVisits} updateStatus={updateStatus} currentLang={lang} />
+          <DashboardView visits={visits} updateStatus={updateStatus} currentLang={lang} />
         </main>
       </div>
 

@@ -112,15 +112,19 @@ const DashboardView = ({ visits = [], updateStatus, currentLang = 'fr' }) => {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {kpis.map(({ label, val, icon: Icon, trend, color }) => (
           <div key={label} className="relative overflow-hidden rounded-sm border border-[#e2ddd6] bg-white p-5 shadow-sm">
-            {/* Mirror accent color layouts nicely depending on script rules */}
+            {/* Mirror accent color layouts beautifully depending on script rules */}
             <div className={`absolute top-0 h-full w-1 ${color} ${isRTL ? 'right-0' : 'left-0'}`} />
+            
             <div className="mb-3 flex items-start justify-between">
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{label}</p>
               <div className={`flex h-8 w-8 items-center justify-center rounded-sm ${color}`}>
                 <Icon size={14} className="text-white" />
               </div>
             </div>
-            <div className="font-serif text-4xl text-[#0f1f3d]">{val}</div>
+            
+            <div className={`font-serif text-4xl text-[#0f1f3d] ${isRTL ? 'font-sans font-bold' : ''}`}>
+              {val}
+            </div>
             <div className="mt-2 text-[10px] font-medium text-emerald-600">{trend}</div>
           </div>
         ))}
@@ -131,11 +135,11 @@ const DashboardView = ({ visits = [], updateStatus, currentLang = 'fr' }) => {
         <table className="w-full border-collapse text-[13px]">
           <thead>
             <tr className="bg-[#f7f6f3] border-b border-[#e2ddd6] text-gray-400 font-bold uppercase text-[10px] tracking-wider">
-              <th className="p-4 text-start">{t.client}</th>
-              <th className="p-4 text-start">{t.property}</th>
-              <th className="p-4 text-start">{t.agent}</th>
-              <th className="p-4 text-start">{t.status}</th>
-              <th className="p-4 text-end">{t.actions}</th>
+              <th className={`p-4 ${isRTL ? 'text-right' : 'text-left'}`}>{t.client}</th>
+              <th className={`p-4 ${isRTL ? 'text-right' : 'text-left'}`}>{t.property}</th>
+              <th className={`p-4 ${isRTL ? 'text-right' : 'text-left'}`}>{t.agent}</th>
+              <th className={`p-4 ${isRTL ? 'text-right' : 'text-left'}`}>{t.status}</th>
+              <th className={`p-4 ${isRTL ? 'text-left' : 'text-right'}`}>{t.actions}</th>
             </tr>
           </thead>
           <tbody>
@@ -151,8 +155,8 @@ const DashboardView = ({ visits = [], updateStatus, currentLang = 'fr' }) => {
                     {t[visit.status] || visit.status}
                   </span>
                 </td>
-                <td className="p-4 text-end">
-                  <div className="flex items-center justify-end gap-2">
+                <td className="p-4">
+                  <div className={`flex items-center gap-2 ${isRTL ? 'justify-start' : 'justify-end'}`}>
                     <button 
                       onClick={() => updateStatus(visit.id, 'confirmed')}
                       className="p-1 rounded-sm text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
