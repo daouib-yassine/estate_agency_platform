@@ -31,15 +31,26 @@ export default function PropertiesDashboard() {
   const [notification, setNotification] = useState(null);
 
   // --- Live Endpoint Database Synch ---
+  // --- Live Endpoint Database Synch ---
   useEffect(() => {
     async function fetchLivePortfolio() {
       try {
         setLoading(true);
-        const response = await fetch('/api/properties');
+        // 🌟 Swap endpoint from /api/properties to /api/dashboard
+        const response = await fetch('/api/dashboard');
         if (!response.ok) throw new Error('Failed to stabilize data stream.');
         
         const data = await response.json();
-        setProperties(data);
+        
+        // 🌟 Extract properties data or look for your central fallback array key
+        if (data && Array.isArray(data.properties)) {
+          setProperties(data.properties);
+        } else if (data && Array.isArray(data.attendances)) {
+          // Fallback mapping if properties aren't isolated on the dashboard endpoint yet
+          setProperties(data.properties || []);
+        } else {
+          setProperties([]);
+        }
       } catch (err) {
         console.error("Portfolio retrieval exception error:", err);
         setError(lang === 'ar' ? 'فشل في تحميل محفظة العقارات' : lang === 'en' ? 'Failed to synchronize estate data portfolio' : 'Échec de synchronisation du portefeuille immobilier');
@@ -118,14 +129,12 @@ export default function PropertiesDashboard() {
         <header className="flex items-center justify-between border-b border-[#e2ddd6] bg-white px-6 py-3.5 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <Search size={14} className={`absolute top-1/2 -translate-y-1/2 text-gray-400 ${isRTL ? 'right-3' : 'left-3'}`} />
-              <input
+              <Search size={14} className="absolute top-1/2 -translate-y-1/2 text-gray-400 start-3" />              <input
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder={t.searchPlaceholder}
-                className={`rounded-sm border border-gray-200 bg-[#f7f6f3] py-2 text-[12px] outline-none focus:border-[#b89a5a] w-64 transition-colors placeholder:text-gray-400 ${isRTL ? 'pr-9 pl-4' : 'pl-9 pr-4'}`}
-              />
+                className="w-full rounded-sm border border-gray-200 bg-[#f7f6f3] py-2 text-[12px] outline-none focus:border-[#b89a5a] transition-colors placeholder:text-gray-400 ps-9 pe-4"              />
             </div>
           </div>
           
@@ -191,8 +200,7 @@ export default function PropertiesDashboard() {
               { label: t.vipPortfolio,    val: vipCount,      icon: Award,      trend: 'Luxury tier',     color: 'bg-amber-600' },
             ].map(({ label, val, icon: Icon, trend, color }) => (
               <div key={label} className="rounded-sm bg-white border border-[#e2ddd6] p-5 shadow-sm relative overflow-hidden">
-                <div className={`absolute top-0 w-1 h-full ${color} ${isRTL ? 'right-0' : 'left-0'}`} />
-                <div className="flex items-start justify-between mb-3">
+                <div className={`absolute top-0 w-1 h-full ${color} start-0`} />                <div className="flex items-start justify-between mb-3">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{label}</p>
                   <div className={`flex h-8 w-8 items-center justify-center rounded-sm ${color} opacity-90`}>
                     <Icon size={14} className="text-white" />
@@ -254,8 +262,7 @@ export default function PropertiesDashboard() {
               </div>
 
               {/* Calculated Counter Threshold Item Element */}
-              <div className={`flex items-center gap-2 text-[11px] text-gray-400 border-[#e2ddd6] ${isRTL ? 'mr-auto border-r pr-4' : 'ml-auto border-l pl-4'}`}>
-                <SlidersHorizontal size={12} className="text-[#b89a5a]" />
+              <div className="flex items-center gap-2 text-[11px] text-gray-400 border-[#e2ddd6] ms-auto border-s ps-4">                <SlidersHorizontal size={12} className="text-[#b89a5a]" />
                 <span className="font-bold text-[#0f1f3d]">{filtered.length}</span>
                 <span>{t.foundCount}</span>
               </div>

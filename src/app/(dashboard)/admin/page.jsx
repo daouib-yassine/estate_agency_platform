@@ -54,7 +54,7 @@ export default function AdminDashboard() {
   const isRTL = t.dir === 'rtl';
 
   // --- Dynamic DB Pipeline States ---
-  const [visits, setVisits] = useState([]);
+  const [attendances, setAttendances] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [notification, setNotification] = useState(null);
@@ -68,8 +68,15 @@ export default function AdminDashboard() {
         if (!response.ok) throw new Error('Failed to reach server architecture.');
         
         const data = await response.json();
-        // Backend handles structural multilingual mapping or returns normalized fields
-        setVisits(data.visits || data); 
+        
+        // Target your backend's exact data array mapping cleanly
+        if (data && Array.isArray(data.attendances)) {
+          setAttendances(data.attendances);
+        } else if (Array.isArray(data)) {
+          setAttendances(data);
+        } else {
+          setAttendances([]);
+        }
       } catch (err) {
         console.error("Dashboard engine sync failure:", err);
         setError(t.errorText);
@@ -78,23 +85,24 @@ export default function AdminDashboard() {
       }
     }
     loadLiveMetrics();
-  }, [lang]);
+  }, [lang, t.errorText]);
 
-  // Derive status counters for dynamic header badges
-  const pendingCount = visits.filter(v => v.status === 'pending').length;
+  // Safe check calculation for fallback array
+  const pendingCount = attendances.filter(
+    a => a && a.status?.toLowerCase() === 'pending'
+  ).length;
 
   /**
-   * Dispatches real-time updates through active fetch pipeline and shifts client view optimistically
+   * Dispatches real-time updates through active fetch pipeline
    */
   const updateStatus = async (id, status) => {
-    // Optimistic state change
-    setVisits(prev => prev.map(v => v.id === id ? { ...v, status } : v));
+    // Optimistic state change targeting attendances array
+    setAttendances(prev => prev.map(a => a.id === id ? { ...a, status } : a));
     
     const label = t.statusLabels[status] || status;
     setNotification(`${t.notifUpdated} ${label}`);
     setTimeout(() => setNotification(null), 3000);
 
-    // Save modifications back to target API database via PUT stream
     try {
       await fetch('/api/dashboard', {
         method: 'PUT',
@@ -135,7 +143,7 @@ export default function AdminDashboard() {
       {/* Primary Workspace View Structure */}
       <div className="flex flex-1 flex-col overflow-hidden">
         
-        /* Workspace Operations Action Header */
+        {/* Workspace Operations Action Header */}
         <header className="flex items-center justify-between border-b border-[#e2ddd6] bg-white px-6 py-3.5 flex-shrink-0">
           
           {/* Search Box Input Wrapper */}
@@ -187,7 +195,8 @@ export default function AdminDashboard() {
 
         {/* Scrollable Agency Metrics Dashboard Panel */}
         <main className="flex-1 overflow-y-auto">
-          <DashboardView visits={visits} updateStatus={updateStatus} currentLang={lang} />
+          {/* Note: Ensure DashboardView component accepts "attendances" prop or map it to expected keys */}
+          <DashboardView visits={attendances} updateStatus={updateStatus} currentLang={lang} />
         </main>
       </div>
 

@@ -18,6 +18,16 @@ export const locales = {
     allTypes: 'All Types',
     allStatuses: 'All Statuses',
     notifAdd: 'Opening Add Property form...',
+    
+    // ── Client Lifecycle & Financial Identifiers ──
+    status: 'Status',
+    theRest: 'Outstanding',
+    contract: 'Contract',
+    actions: 'Actions',
+    paymentPaid: 'Paid',
+    paymentPartial: 'Partial',
+    currency: 'DH',
+    collectBtn: 'Collect'
   },
   fr: {
     dir: 'ltr',
@@ -36,6 +46,16 @@ export const locales = {
     allTypes: 'Tous les Types',
     allStatuses: 'Tous les Statuts',
     notifAdd: 'Ouverture du formulaire d’ajout...',
+    
+    // ── Client Lifecycle & Financial Identifiers ──
+    status: 'Statut',
+    theRest: 'Le Reste',
+    contract: 'Contrat',
+    actions: 'Actions',
+    paymentPaid: 'Payé',
+    paymentPartial: 'Partiel',
+    currency: 'DH',
+    collectBtn: 'Encaisser'
   },
   ar: {
     dir: 'rtl',
@@ -54,5 +74,15 @@ export const locales = {
     allTypes: 'جميع الأنواع',
     allStatuses: 'جميع الحالات',
     notifAdd: 'جاري فتح نموذج إضافة عقار...',
+    
+    // ── Client Lifecycle & Financial Identifiers ──
+    status: 'الحالة',
+    theRest: 'المتبقي',
+    contract: 'العقد',
+    actions: 'الإجراءات',
+    paymentPaid: 'مدفوع',
+    paymentPartial: 'جزئي',
+    currency: 'درهم',
+    collectBtn: 'تحصيل'
   }
 };

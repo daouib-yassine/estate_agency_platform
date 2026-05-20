@@ -61,10 +61,12 @@ export default function ClientCardView({
             onClick={() => setSelectedClient(c)}
             className="rounded-sm bg-white border border-[#e2ddd6] shadow-sm p-5 cursor-pointer hover:shadow-md hover:border-[#b89a5a] transition-all group relative overflow-hidden flex flex-col justify-between"
           >
-            {/* Context Status Anchor Stripe — Swaps edges seamlessly based on text-direction scripts */}
-            <div className={`absolute top-0 h-full w-1 ${cfg.dot} ${isRTL ? "right-0" : "left-0"}`} />
+            {/* 🌟 AUDITED: Swapped absolute position to logical inline start (start-0) */}
+            <div className={`absolute top-0 h-full w-1 ${cfg.dot} start-0`} />
 
-            <div className={isRTL ? "pr-2" : "pl-2"}>
+            {/* 🌟 AUDITED: Swapped 'pl-2/pr-2' to logical padding inline start (ps-2) */}
+            <div className="ps-2">
+              
               {/* Profile Card Header */}
               <div className="flex items-start justify-between mb-4 gap-2">
                 <div className="flex items-center gap-3 truncate">
@@ -73,7 +75,8 @@ export default function ClientCardView({
                   </div>
                   <div className="truncate">
                     <p className="text-[13px] font-medium text-[#0f1f3d] truncate leading-tight">{c.name}</p>
-                    <p dir="ltr" className={`text-[10px] text-gray-400 font-mono mt-0.5 ${isRTL ? 'text-right' : 'text-left'}`}>{c.id}</p>
+                    {/* 🌟 AUDITED: Replaced conditional right/left check with logical 'text-start' */}
+                    <p dir="ltr" className="text-[10px] text-gray-400 font-mono mt-0.5 text-start">{c.id}</p>
                   </div>
                 </div>
 
@@ -102,7 +105,8 @@ export default function ClientCardView({
             </div>
 
             {/* Bottom Target Parameters */}
-            <div className={`pt-3 border-t border-[#f0ede8] ${isRTL ? "pr-2" : "pl-2"}`}>
+            {/* 🌟 AUDITED: Swapped physical layout check to logical inline start padding (ps-2) */}
+            <div className="pt-3 border-t border-[#f0ede8] ps-2">
               <div className="flex items-center justify-between gap-2">
                 <span className={`rounded-full px-2.5 py-0.5 text-[8px] font-bold uppercase tracking-wider ${int.color} whitespace-nowrap`}>
                   {t.interests[c.interest] || int.label}
