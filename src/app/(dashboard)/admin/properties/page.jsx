@@ -3,13 +3,16 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
   Home, Search, Bell, Plus, ChevronDown, Grid3X3, List,
-  SlidersHorizontal, Tag, Building2, Award, TrendingUp, CheckCircle2, Globe
+  SlidersHorizontal, Tag, Building2, Award, TrendingUp, CheckCircle2, Globe, ArrowLeft
 } from 'lucide-react';
 
 import { projects } from "@/constants/properties";
 import { locales } from "@/constants/locales";
 import PropertyCardView from "@/components/properties/property-card-view";
 import PropertyTableView from "@/components/properties/property-table-view";
+
+// ── 1. IMPORT YOUR REAL ESTATE CREATION FORM ──
+import PropertyFormView from "@/components/properties/property-form-view";
 
 export default function PropertiesDashboard() {
   // --- Internationalization State ---
@@ -27,26 +30,24 @@ export default function PropertiesDashboard() {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [projectFilter, setProjectFilter] = useState('All Projects');
   const [notification, setNotification] = useState(null);
 
-  // --- Live Endpoint Database Synch ---
+  // ── 2. NEW LOGICAL STATE: SWITCHES DASHBOARD MODE TO FORM ──
+  const [isCreating, setIsCreating] = useState(false);
+
   // --- Live Endpoint Database Synch ---
   useEffect(() => {
     async function fetchLivePortfolio() {
       try {
         setLoading(true);
-        // 🌟 Swap endpoint from /api/properties to /api/dashboard
         const response = await fetch('/api/dashboard');
         if (!response.ok) throw new Error('Failed to stabilize data stream.');
         
         const data = await response.json();
         
-        // 🌟 Extract properties data or look for your central fallback array key
         if (data && Array.isArray(data.properties)) {
           setProperties(data.properties);
         } else if (data && Array.isArray(data.attendances)) {
-          // Fallback mapping if properties aren't isolated on the dashboard endpoint yet
           setProperties(data.properties || []);
         } else {
           setProperties([]);
@@ -64,6 +65,25 @@ export default function PropertiesDashboard() {
   const showNotif = (msg) => {
     setNotification(msg);
     setTimeout(() => setNotification(null), 3000);
+  };
+
+  // ── 3. FORM HANDLER: COMMITS DATA LOCALLY AND SHIFTS VIEW BACK ──
+  const handleSaveProperty = (newProp) => {
+    const formattedData = {
+      id: `PROP-${Date.now().toString().slice(-4)}`,
+      title: lang === 'ar' ? newProp.titlear : newProp.titlefr,
+      type: newProp.type,
+      status: newProp.status,
+      price: `${Number(newProp.price).toLocaleString()} DH`,
+      location: newProp.location,
+      area: newProp.area,
+      project: "All Projects",
+      features: { zoning: newProp.zoning }
+    };
+
+    setProperties([formattedData, ...properties]);
+    setIsCreating(false);
+    showNotif(lang === 'ar' ? 'تم حفظ العقار بنجاح' : lang === 'en' ? 'Asset saved successfully' : 'Propriété enregistrée avec succès');
   };
 
   // --- Client-side Filter Pipeline ---
@@ -95,7 +115,6 @@ export default function PropertiesDashboard() {
   const rentalCount   = properties.filter(p => p.forRent).length;
   const vipCount      = properties.filter(p => p.isVIP).length;
 
-  // --- Premium Loading State Overlays ---
   if (loading) {
     return (
       <div dir={t.dir} className="flex h-screen w-full items-center justify-center bg-[#f0ede8] text-[#0f1f3d]">
@@ -109,7 +128,6 @@ export default function PropertiesDashboard() {
     );
   }
 
-  // --- Premium Error Boundary Box ---
   if (error) {
     return (
       <div dir={t.dir} className="flex h-screen w-full items-center justify-center bg-[#f0ede8] font-mono text-xs text-rose-600 p-8">
@@ -122,24 +140,24 @@ export default function PropertiesDashboard() {
 
   return (
     <div dir={t.dir} className="flex h-screen bg-[#f0ede8] font-sans text-[#0f1f3d] overflow-hidden transition-all duration-200">
-      
       <div className="flex flex-1 flex-col overflow-hidden">
 
         {/* --- Top Bar Navigation Bar --- */}
         <header className="flex items-center justify-between border-b border-[#e2ddd6] bg-white px-6 py-3.5 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <Search size={14} className="absolute top-1/2 -translate-y-1/2 text-gray-400 start-3" />              <input
+              <Search size={14} className="absolute top-1/2 -translate-y-1/2 text-gray-400 start-3" />
+              <input
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder={t.searchPlaceholder}
-                className="w-full rounded-sm border border-gray-200 bg-[#f7f6f3] py-2 text-[12px] outline-none focus:border-[#b89a5a] transition-colors placeholder:text-gray-400 ps-9 pe-4"              />
+                className="w-full rounded-sm border border-gray-200 bg-[#f7f6f3] py-2 text-[12px] outline-none focus:border-[#b89a5a] transition-colors placeholder:text-gray-400 ps-9 pe-4"
+              />
             </div>
           </div>
           
           <div className="flex items-center gap-4">
-            {/* Multi-language selector dropdown container */}
             <div className="relative flex items-center gap-1.5 bg-[#f7f6f3] border border-gray-200 rounded-sm px-2.5 py-1.5">
               <Globe size={13} className="text-[#b89a5a]" />
               <select 
@@ -157,130 +175,159 @@ export default function PropertiesDashboard() {
               {new Date().toLocaleDateString(lang === 'ar' ? 'ar-MA' : lang === 'fr' ? 'fr-FR' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
             </span>
             
-            <button
-              onClick={() => showNotif(t.notifAdd)}
-              className="flex items-center gap-2 rounded-sm bg-[#0f1f3d] px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-white hover:bg-[#b89a5a] transition-colors"
-            >
-              <Plus size={12} /> {t.addProperty}
-            </button>
+            {/* ── 4. CONDITIONAL TOPBAR BUTTON TRIGGER ── */}
+            {!isCreating ? (
+              <button
+                onClick={() => setIsCreating(true)}
+                className="flex items-center gap-2 rounded-sm bg-[#0f1f3d] px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-white hover:bg-[#b89a5a] transition-colors"
+              >
+                <Plus size={12} /> {t.addProperty}
+              </button>
+            ) : (
+              <button
+                onClick={() => setIsCreating(false)}
+                className="flex items-center gap-2 rounded-sm border border-[#e2ddd6] bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-gray-500 hover:text-[#0f1f3d] transition-colors"
+              >
+                <ArrowLeft size={12} className={isRTL ? "transform rotate-180" : ""} />
+                {lang === 'ar' ? 'العودة' : lang === 'en' ? 'Back' : 'Retour'}
+              </button>
+            )}
           </div>
         </header>
 
         {/* --- Scrollable Content View --- */}
         <main className="flex-1 overflow-y-auto p-6 space-y-6">
 
-          {/* Heading Module + View Toggle Matrix */}
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className={`font-serif text-2xl font-normal ${lang === 'ar' ? 'font-sans font-bold' : ''}`}>{t.portfolioTitle}</h1>
-              <p className="mt-0.5 text-[12px] text-gray-500">{t.portfolioSub}</p>
+          {/* ── 5. MAIN ROUTING ENGINE INTERFACE ── */}
+          {isCreating ? (
+            <div className="animate-in fade-in slide-in-from-bottom-3 duration-200">
+              <PropertyFormView 
+                currentLang={lang}
+                onSave={handleSaveProperty}
+                onCancel={() => setIsCreating(false)}
+              />
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setViewMode('card')}
-                className={`flex items-center gap-1.5 rounded-sm border px-3 py-2 text-[11px] font-bold uppercase tracking-widest transition-all ${viewMode === 'card' ? 'bg-[#0f1f3d] border-[#0f1f3d] text-white' : 'border-[#e2ddd6] text-gray-400 hover:border-[#0f1f3d] hover:text-[#0f1f3d]'}`}
-              >
-                <Grid3X3 size={12} /> {t.cardsView}
-              </button>
-              <button
-                onClick={() => setViewMode('table')}
-                className={`flex items-center gap-1.5 rounded-sm border px-3 py-2 text-[11px] font-bold uppercase tracking-widest transition-all ${viewMode === 'table' ? 'bg-[#0f1f3d] border-[#0f1f3d] text-white' : 'border-[#e2ddd6] text-gray-400 hover:border-[#0f1f3d] hover:text-[#0f1f3d]'}`}
-              >
-                <List size={12} /> {t.tableView}
-              </button>
-            </div>
-          </div>
+          ) : (
+            <>
+              {/* Heading Module + View Toggle Matrix */}
+              <div className="flex items-start justify-between">
+                <div>
+                  <h1 className={`font-serif text-2xl font-normal ${lang === 'ar' ? 'font-sans font-bold' : ''}`}>{t.portfolioTitle}</h1>
+                  <p className="mt-0.5 text-[12px] text-gray-500">{t.portfolioSub}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setViewMode('card')}
+                    className={`flex items-center gap-1.5 rounded-sm border px-3 py-2 text-[11px] font-bold uppercase tracking-widest transition-all ${viewMode === 'card' ? 'bg-[#0f1f3d] border-[#0f1f3d] text-white' : 'border-[#e2ddd6] text-gray-400 hover:border-[#0f1f3d] hover:text-[#0f1f3d]'}`}
+                  >
+                    <Grid3X3 size={12} /> {t.cardsView}
+                  </button>
+                  <button
+                    onClick={() => setViewMode('table')}
+                    className={`flex items-center gap-1.5 rounded-sm border px-3 py-2 text-[11px] font-bold uppercase tracking-widest transition-all ${viewMode === 'table' ? 'bg-[#0f1f3d] border-[#0f1f3d] text-white' : 'border-[#e2ddd6] text-gray-400 hover:border-[#0f1f3d] hover:text-[#0f1f3d]'}`}
+                  >
+                    <List size={12} /> {t.tableView}
+                  </button>
+                </div>
+              </div>
 
-          {/* KPI Dashboard Grid */}
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {[
-              { label: t.totalProperties, val: totalCount,    icon: Home,       trend: 'Active listings', color: 'bg-[#0f1f3d]' },
-              { label: t.forSale,         val: forSaleCount,  icon: Tag,        trend: 'Available now',   color: 'bg-emerald-700' },
-              { label: t.rentalUnits,     val: rentalCount,   icon: Building2, trend: 'Long & short term', color: 'bg-[#b89a5a]' },
-              { label: t.vipPortfolio,    val: vipCount,      icon: Award,      trend: 'Luxury tier',     color: 'bg-amber-600' },
-            ].map(({ label, val, icon: Icon, trend, color }) => (
-              <div key={label} className="rounded-sm bg-white border border-[#e2ddd6] p-5 shadow-sm relative overflow-hidden">
-                <div className={`absolute top-0 w-1 h-full ${color} start-0`} />                <div className="flex items-start justify-between mb-3">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{label}</p>
-                  <div className={`flex h-8 w-8 items-center justify-center rounded-sm ${color} opacity-90`}>
-                    <Icon size={14} className="text-white" />
+              {/* KPI Dashboard Grid */}
+              <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                {[
+                  { label: t.totalProperties, val: totalCount,    icon: Home,       trend: 'Active listings', color: 'bg-[#0f1f3d]' },
+                  { label: t.forSale,         val: forSaleCount,  icon: Tag,        trend: 'Available now',   color: 'bg-emerald-700' },
+                  { label: t.rentalUnits,     val: rentalCount,   icon: Building2, trend: 'Long & short term', color: 'bg-[#b89a5a]' },
+                  { label: t.vipPortfolio,    val: vipCount,      icon: Award,      trend: 'Luxury tier',     color: 'bg-amber-600' },
+                ].map(({ label, val, icon: Icon, trend, color }) => (
+                  <div key={label} className="rounded-sm bg-white border border-[#e2ddd6] p-5 shadow-sm relative overflow-hidden">
+                    <div className={`absolute top-0 w-1 h-full ${color} start-0`} />
+                    <div className="flex items-start justify-between mb-3">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{label}</p>
+                      <div className={`flex h-8 w-8 items-center justify-center rounded-sm ${color} opacity-90`}>
+                        <Icon size={14} className="text-white" />
+                      </div>
+                    </div>
+                    <div className="font-serif text-4xl text-[#0f1f3d]">{val}</div>
+                    <div className="mt-2 flex items-center gap-1 text-[10px] font-medium text-emerald-600">
+                      <TrendingUp size={10} className={isRTL ? "transform scale-x-[-1]" : ""} />
+                      {trend}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Filter Toolbar Sub-Matrix */}
+              <div className="rounded-sm bg-white border border-[#e2ddd6] shadow-sm px-5 py-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="relative flex-1 min-w-48">
+                    {/* 🌟 AUDITED: Converted input alignments to completely direction-agnostic logical properties */}
+                    <Search size={13} className="absolute top-1/2 -translate-y-1/2 text-gray-400 start-3" />
+                    <input
+                      type="text"
+                      value={search}
+                      onChange={e => setSearch(e.target.value)}
+                      placeholder={t.searchRef}
+                      className="w-full rounded-sm border border-gray-200 bg-[#f7f6f3] py-2 text-[12px] outline-none focus:border-[#b89a5a] transition-colors placeholder:text-gray-400 ps-9 pe-4"
+                    />
+                  </div>
+
+                  {/* Asset Typology Dropdown Selector */}
+                  <div className="relative">
+                    {/* 🌟 AUDITED: Cleaned up physical padding values to logical properties */}
+                    <select
+                      value={typeFilter}
+                      onChange={e => setTypeFilter(e.target.value)}
+                      className="appearance-none rounded-sm border border-gray-200 bg-[#f7f6f3] py-2 text-[12px] text-[#0f1f3d] outline-none focus:border-[#b89a5a] cursor-pointer transition-colors ps-3 pe-8"
+                    >
+                      <option value="all">{t.allTypes}</option>
+                      <option value="apartment">Apartment</option>
+                      <option value="villa">Villa</option>
+                      <option value="land">Land / Terrain</option>
+                      <option value="penthouse">Penthouse</option>
+                    </select>
+                    <ChevronDown size={11} className="pointer-events-none absolute top-1/2 -translate-y-1/2 text-gray-400 end-2.5" />
+                  </div>
+
+                  {/* Transaction State Pipeline Dropdown Selector */}
+                  <div className="relative">
+                    {/* 🌟 AUDITED: Cleaned up physical padding values to logical properties */}
+                    <select
+                      value={statusFilter}
+                      onChange={e => setStatusFilter(e.target.value)}
+                      className="appearance-none rounded-sm border border-gray-200 bg-[#f7f6f3] py-2 text-[12px] text-[#0f1f3d] outline-none focus:border-[#b89a5a] cursor-pointer transition-colors ps-3 pe-8"
+                    >
+                      <option value="all">{t.allStatuses}</option>
+                      <option value="available">Available</option>
+                      <option value="reserved">Reserved</option>
+                      <option value="sold">Sold</option>
+                      <option value="rented">Rented</option>
+                    </select>
+                    <ChevronDown size={11} className="pointer-events-none absolute top-1/2 -translate-y-1/2 text-gray-400 end-2.5" />
+                  </div>
+
+                  {/* Calculated Counter Threshold Item Element */}
+                  <div className="flex items-center gap-2 text-[11px] text-gray-400 border-[#e2ddd6] ms-auto border-s ps-4">
+                    <SlidersHorizontal size={12} className="text-[#b89a5a]" />
+                    <span className="font-bold text-[#0f1f3d]">{filtered.length}</span>
+                    <span>{t.foundCount}</span>
                   </div>
                 </div>
-                <div className="font-serif text-4xl text-[#0f1f3d]">{val}</div>
-                <div className="mt-2 flex items-center gap-1 text-[10px] font-medium text-emerald-600">
-                  <TrendingUp size={10} className={isRTL ? "transform scale-x-[-1]" : ""} />
-                  {trend}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Filter Toolbar Sub-Matrix */}
-          <div className="rounded-sm bg-white border border-[#e2ddd6] shadow-sm px-5 py-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="relative flex-1 min-w-48">
-                <Search size={13} className={`absolute top-1/2 -translate-y-1/2 text-gray-400 ${isRTL ? 'right-3' : 'left-3'}`} />
-                <input
-                  type="text"
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  placeholder={t.searchRef}
-                  className={`w-full rounded-sm border border-gray-200 bg-[#f7f6f3] py-2 text-[12px] outline-none focus:border-[#b89a5a] transition-colors placeholder:text-gray-400 ${isRTL ? 'pr-9 pl-4' : 'pl-9 pr-4'}`}
-                />
               </div>
 
-              {/* Asset Typology Dropdown Selector */}
-              <div className="relative">
-                <select
-                  value={typeFilter}
-                  onChange={e => setTypeFilter(e.target.value)}
-                  className={`appearance-none rounded-sm border border-gray-200 bg-[#f7f6f3] py-2 text-[12px] text-[#0f1f3d] outline-none focus:border-[#b89a5a] cursor-pointer transition-colors ${isRTL ? 'pl-8 pr-3' : 'pl-3 pr-8'}`}
-                >
-                  <option value="all">{t.allTypes}</option>
-                  <option value="apartment">Apartment</option>
-                  <option value="villa">Villa</option>
-                  <option value="land">Land / Terrain</option>
-                  <option value="penthouse">Penthouse</option>
-                </select>
-                <ChevronDown size={11} className={`pointer-events-none absolute top-1/2 -translate-y-1/2 text-gray-400 ${isRTL ? 'left-2.5' : 'right-2.5'}`} />
-              </div>
-
-              {/* Transaction State Pipeline Dropdown Selector */}
-              <div className="relative">
-                <select
-                  value={statusFilter}
-                  onChange={e => setStatusFilter(e.target.value)}
-                  className={`appearance-none rounded-sm border border-gray-200 bg-[#f7f6f3] py-2 text-[12px] text-[#0f1f3d] outline-none focus:border-[#b89a5a] cursor-pointer transition-colors ${isRTL ? 'pl-8 pr-3' : 'pl-3 pr-8'}`}
-                >
-                  <option value="all">{t.allStatuses}</option>
-                  <option value="available">Available</option>
-                  <option value="reserved">Reserved</option>
-                  <option value="sold">Sold</option>
-                  <option value="rented">Rented</option>
-                </select>
-                <ChevronDown size={11} className={`pointer-events-none absolute top-1/2 -translate-y-1/2 text-gray-400 ${isRTL ? 'left-2.5' : 'right-2.5'}`} />
-              </div>
-
-              {/* Calculated Counter Threshold Item Element */}
-              <div className="flex items-center gap-2 text-[11px] text-gray-400 border-[#e2ddd6] ms-auto border-s ps-4">                <SlidersHorizontal size={12} className="text-[#b89a5a]" />
-                <span className="font-bold text-[#0f1f3d]">{filtered.length}</span>
-                <span>{t.foundCount}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* --- Render Conditionals: Card Grid vs Tabular Row list --- */}
-          {viewMode === 'card' ? (
-            <PropertyCardView properties={filtered} onAction={showNotif} currentLang={lang} />
-          ) : (
-            <PropertyTableView properties={filtered} onAction={showNotif} currentLang={lang} />
+              {/* --- Render Conditionals: Card Grid vs Tabular Row list --- */}
+              {viewMode === 'card' ? (
+                <PropertyCardView properties={filtered} onAction={showNotif} currentLang={lang} />
+              ) : (
+                <PropertyTableView properties={filtered} onAction={showNotif} currentLang={lang} />
+              )}
+            </>
           )}
         </main>
       </div>
 
       {/* --- Notification Toast System --- */}
       {notification && (
-        <div className={`fixed bottom-6 z-50 flex items-center gap-3 rounded-sm bg-[#0f1f3d] px-5 py-3.5 shadow-2xl border-y-0 border-r-0 border-l-4 border-[#b89a5a] ${isRTL ? 'left-6' : 'right-6'}`}>
+        <div className="fixed bottom-6 end-6 z-50 flex items-center gap-3 rounded-sm bg-[#0f1f3d] px-5 py-3.5 shadow-2xl border-y-0 border-s-4 border-[#b89a5a]">
           <CheckCircle2 size={15} className="text-[#d4b87a]" />
           <span className="text-[12px] font-medium text-white">{notification}</span>
         </div>
